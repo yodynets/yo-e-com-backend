@@ -1,0 +1,269 @@
+# =============================================================
+# .gitattributes — Universal JetBrains / Multi-Stack Template
+# Covers: PHP, Go, TypeScript, JavaScript, Rust, Dart/Flutter,
+#         Python, Ruby, HCL/Terraform, SQL, HTML, CSS, DevOps
+# =============================================================
+
+# ─────────────────────────────────────────────────────────────
+# DEFAULTS: LF everywhere, CRLF only for Windows-specific files
+# ─────────────────────────────────────────────────────────────
+* text=auto eol=lf
+
+*.bat         text eol=crlf
+*.cmd         text eol=crlf
+*.ps1         text eol=crlf
+*.psm1        text eol=crlf
+*.psd1        text eol=crlf
+
+# ─────────────────────────────────────────────────────────────
+# PHP
+# ─────────────────────────────────────────────────────────────
+*.php         text diff=php
+*.phtml       text diff=php
+*.php8        text diff=php
+
+# ─────────────────────────────────────────────────────────────
+# Go
+# ─────────────────────────────────────────────────────────────
+*.go          text diff=golang
+go.sum        text -diff
+go.work.sum   text -diff
+
+# ─────────────────────────────────────────────────────────────
+# TypeScript / JavaScript
+# ─────────────────────────────────────────────────────────────
+*.ts          text diff=typescript
+*.tsx         text diff=typescript
+*.js          text diff=javascript
+*.jsx         text diff=javascript
+*.mjs         text diff=javascript
+*.cjs         text diff=javascript
+
+# ─────────────────────────────────────────────────────────────
+# Rust
+# ─────────────────────────────────────────────────────────────
+*.rs          text diff=rust
+Cargo.lock    text -diff
+
+# ─────────────────────────────────────────────────────────────
+# Dart / Flutter
+# ─────────────────────────────────────────────────────────────
+*.dart        text diff=dart
+pubspec.lock  text -diff
+
+# ─────────────────────────────────────────────────────────────
+# Lua
+# ─────────────────────────────────────────────────────────────
+*.lua         text diff=lua
+
+# ─────────────────────────────────────────────────────────────
+# Python
+# ─────────────────────────────────────────────────────────────
+*.py          text diff=python
+*.pyi         text diff=python
+Pipfile.lock  text -diff
+
+# ─────────────────────────────────────────────────────────────
+# Ruby
+# ─────────────────────────────────────────────────────────────
+*.rb          text diff=ruby
+Gemfile.lock  text -diff
+
+# ─────────────────────────────────────────────────────────────
+# Web: HTML / CSS / Templates
+# ─────────────────────────────────────────────────────────────
+*.html        text diff=html
+*.htm         text diff=html
+*.blade.php   text diff=html
+*.templ       text diff=html
+*.twig        text diff=html
+*.njk         text diff=html
+*.ejs         text diff=html
+*.hbs         text diff=html
+*.mustache    text diff=html
+*.vue         text diff=html
+*.svelte      text diff=html
+*.css         text diff=css
+*.scss        text diff=css
+*.sass        text diff=css
+*.less        text diff=css
+
+# ─────────────────────────────────────────────────────────────
+# Data / Config formats
+# ─────────────────────────────────────────────────────────────
+*.json        text diff=json
+*.jsonc       text diff=json
+*.json5       text diff=json
+*.yaml        text diff=yaml
+*.yml         text diff=yaml
+*.toml        text
+*.xml         text diff=html
+*.svg         text diff=html
+*.env         text
+*.env.*       text
+*.ini         text
+*.cfg         text
+*.conf        text
+*.properties  text
+
+# ─────────────────────────────────────────────────────────────
+# HCL / Terraform / HashiCorp stack
+# ─────────────────────────────────────────────────────────────
+*.hcl           text diff=terraform
+*.tf            text diff=terraform
+*.tfvars        text diff=terraform
+*.tfvars.json   text diff=json
+.terraform.lock.hcl text -diff merge=ours
+
+# ─────────────────────────────────────────────────────────────
+# SQL / Database
+# ─────────────────────────────────────────────────────────────
+*.sql         text diff=sql
+*.pgsql       text diff=sql
+*.mysql       text diff=sql
+
+# ─────────────────────────────────────────────────────────────
+# Shell / Scripts
+# ─────────────────────────────────────────────────────────────
+*.sh          text eol=lf
+*.bash        text eol=lf
+*.zsh         text eol=lf
+*.fish        text eol=lf
+Makefile      text eol=lf
+*.mk          text eol=lf
+Dockerfile    text eol=lf
+Dockerfile.*  text eol=lf
+*.dockerfile  text eol=lf
+*.containerfile text eol=lf
+
+# ─────────────────────────────────────────────────────────────
+# Documentation
+# ─────────────────────────────────────────────────────────────
+*.md          text diff=markdown
+*.mdx         text diff=markdown
+*.rst         text
+*.txt         text
+*.adoc        text
+LICENSE       text
+AUTHORS       text
+CODEOWNERS    text
+
+# ─────────────────────────────────────────────────────────────
+# Lock files — no diff noise, merge=ours
+# ─────────────────────────────────────────────────────────────
+*.lock        text -diff merge=ours
+*.lock.*      text -diff merge=ours
+package-lock.json  text -diff merge=ours
+yarn.lock          text -diff merge=ours
+pnpm-lock.yaml     text -diff merge=ours
+composer.lock      text -diff merge=ours
+bun.lockb          binary
+
+# ─────────────────────────────────────────────────────────────
+# Generated files — hide from diff + GitHub stats
+# ─────────────────────────────────────────────────────────────
+*_templ.go              linguist-generated=true -diff
+*.pb.go                 linguist-generated=true -diff
+*.gen.go                linguist-generated=true -diff
+*.generated.go          linguist-generated=true -diff
+*.generated.ts          linguist-generated=true -diff
+*.generated.php         linguist-generated=true -diff
+*_test.snap             linguist-generated=true -diff
+
+# ─────────────────────────────────────────────────────────────
+# Binary: Images
+# ─────────────────────────────────────────────────────────────
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.bmp   binary
+*.ico   binary
+*.webp  binary
+*.avif  binary
+*.tiff  binary
+*.tif   binary
+*.psd   binary
+*.ai    binary
+*.eps   binary
+
+# ─────────────────────────────────────────────────────────────
+# Binary: Fonts
+# ─────────────────────────────────────────────────────────────
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+*.eot   binary
+
+# ─────────────────────────────────────────────────────────────
+# Binary: Audio / Video
+# ─────────────────────────────────────────────────────────────
+*.mp3   binary
+*.mp4   binary
+*.wav   binary
+*.flac  binary
+*.ogg   binary
+*.opus  binary
+*.aac   binary
+*.m4a   binary
+*.webm  binary
+*.avi   binary
+*.mov   binary
+*.mkv   binary
+
+# ─────────────────────────────────────────────────────────────
+# Binary: Archives / Executables
+# ─────────────────────────────────────────────────────────────
+*.zip   binary
+*.tar   binary
+*.gz    binary
+*.bz2   binary
+*.xz    binary
+*.7z    binary
+*.rar   binary
+*.exe   binary
+*.dll   binary
+*.so    binary
+*.dylib binary
+*.a     binary
+*.o     binary
+*.wasm  binary
+
+# ─────────────────────────────────────────────────────────────
+# Binary: Documents / Data files
+# ─────────────────────────────────────────────────────────────
+*.pdf   binary
+*.doc   binary
+*.docx  binary
+*.xls   binary
+*.xlsx  binary
+*.ppt   binary
+*.pptx  binary
+*.db    binary
+*.sqlite binary
+*.sqlite3 binary
+
+# ─────────────────────────────────────────────────────────────
+# Terraform state — never should be committed, but just in case
+# ─────────────────────────────────────────────────────────────
+*.tfstate         binary
+*.tfstate.backup  binary
+
+# ─────────────────────────────────────────────────────────────
+# git archive export-ignore
+# (files excluded from GitHub release tarballs)
+# ─────────────────────────────────────────────────────────────
+README.md         export-ignore
+CHANGELOG.md      export-ignore
+CONTRIBUTING.md.md   export-ignore
+SECURITY.md       export-ignore
+.editorconfig     export-ignore
+.env.example      export-ignore
+.gitattributes    export-ignore
+.gitignore        export-ignore
+.github           export-ignore
+docs              export-ignore
+tests             export-ignore
+
+.github/workflows/browser-tests.yml export-ignore

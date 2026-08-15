@@ -1,0 +1,13 @@
+{
+    "agents": [
+        "junie",
+        "claude_code",
+        "codex",
+        "opencode",
+        "zed"
+    ],
+    "guidelines": true,
+    "packages": [
+        "filament/filament"
+    ]
+}
