@@ -282,10 +282,17 @@ $archiver->archive(
     snapshot: $fulfillment->toArray(),
     reason: 'retention window passed',
     archivedBy: 'scheduled-job',
+    storageLocation: 'analytics-db',  // marker of the external store (a DB name, a JSON list, ...)
 );
 
 // Make the record visible again
 $archiver->restore(type: 'fulfillment', id: 'ful_01J');
+
+// Read the stored snapshot back, or null when not archived
+$snapshot = $archiver->findSnapshot('fulfillment', 'ful_01J');
+
+// Ask whether a record currently has an archived snapshot
+$archived = $archiver->isArchived('fulfillment', 'ful_01J');
 ```
 
 ### ArchiveRepository (contract)
@@ -297,6 +304,8 @@ $repository = app(ArchiveRepository::class);
 
 $repository->archive('order', 'ord-01', ['total' => 100], 'customer request', 'user-1');
 $repository->restore('order', 'ord-01');
+$repository->findSnapshot('order', 'ord-01'); // ?array — stored snapshot
+$repository->isArchived('order', 'ord-01');   // bool
 ```
 
 ---

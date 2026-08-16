@@ -100,3 +100,24 @@ composer analyse
 ```
 
 PHP 8.3+ and Laravel 13 are supported. The core domain has no dependency on controllers, requests, facades, or Eloquent.
+
+### Running tests inside the host application (current setup)
+
+The package is developed as a path-repository dependency, so it reuses the host
+application's test runner. From the host project root:
+
+```bash
+vendor/bin/phpunit --bootstrap vendor/autoload.php packages/yeod/commerce-lifecycle/tests/Unit
+```
+
+> Requires `pdo_sqlite` — if it is not enabled in `php.ini`, prepend
+> `php -d extension=pdo_sqlite` to the command.
+
+### Running tests standalone (after extraction to GitHub)
+
+Once the package is extracted into its own repository, install its dependencies and run:
+
+```bash
+composer install
+composer test
+```

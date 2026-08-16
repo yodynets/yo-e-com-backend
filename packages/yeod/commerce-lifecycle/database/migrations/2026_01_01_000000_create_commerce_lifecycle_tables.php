@@ -32,6 +32,7 @@ return new class extends Migration {
             $table->string('archivable_id')->index();
             $table->string('reason')->nullable();
             $table->string('archived_by')->nullable();
+            $table->string('storage_location')->nullable();
             $table->json('snapshot');
             $table->timestamp('archived_at');
             $table->timestamp('restored_at')->nullable();

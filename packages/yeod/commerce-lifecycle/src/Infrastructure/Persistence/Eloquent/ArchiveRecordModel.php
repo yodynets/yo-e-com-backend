@@ -18,6 +18,7 @@ final class ArchiveRecordModel extends Model
         'archivable_id',
         'reason',
         'archived_by',
+        'storage_location',
         'snapshot',
         'archived_at',
         'restored_at',

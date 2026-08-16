@@ -117,6 +117,12 @@ JSON snapshot stored in the `commerce_archives` table via `ArchiveService` — b
 decision of when and what to archive belongs to the host application. A purge
 operation is deliberately not included.
 
+Each archive record may carry an optional `storage_location` marker (a plain string)
+pointing to where the snapshot is physically kept — e.g. an analytics database name
+or a JSON list of external stores. The package stores the marker and the snapshot,
+it does not interpret the marker. Use `ArchiveService::findSnapshot()` to read a
+snapshot back and `ArchiveService::isArchived()` to check whether a record is archived.
+
 ## Transition rules
 
 - Every status exposes `canTransitionTo(self $target)` with a **self**-typed argument.

@@ -20,16 +20,18 @@ final class EloquentArchiveRepository implements ArchiveRepository
         string $id,
         array $snapshot,
         ?string $reason = null,
-        ?string $archivedBy = null
+        ?string $archivedBy = null,
+        ?string $storageLocation = null
     ): void {
         ArchiveRecordModel::query()->updateOrCreate(
             ['archivable_type' => $type, 'archivable_id' => $id],
             [
-                'reason'      => $reason,
-                'archived_by' => $archivedBy,
-                'snapshot'    => $snapshot,
-                'archived_at' => Carbon::now(),
-                'restored_at' => null,
+                'reason'           => $reason,
+                'archived_by'      => $archivedBy,
+                'storage_location' => $storageLocation,
+                'snapshot'         => $snapshot,
+                'archived_at'      => Carbon::now(),
+                'restored_at'      => null,
             ],
         );
     }
@@ -43,5 +45,24 @@ final class EloquentArchiveRepository implements ArchiveRepository
             ->where('archivable_type', $type)
             ->where('archivable_id', $id)
             ->update(['restored_at' => Carbon::now()]);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findSnapshot(string $type, string $id): ?array
+    {
+        return ArchiveRecordModel::query()
+            ->where('archivable_type', $type)
+            ->where('archivable_id', $id)
+            ->value('snapshot');
+    }
+
+    public function isArchived(string $type, string $id): bool
+    {
+        return ArchiveRecordModel::query()
+            ->where('archivable_type', $type)
+            ->where('archivable_id', $id)
+            ->exists();
     }
 }
