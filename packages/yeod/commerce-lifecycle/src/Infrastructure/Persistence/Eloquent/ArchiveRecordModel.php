@@ -13,7 +13,15 @@ final class ArchiveRecordModel extends Model
 {
     public    $timestamps = false;
     protected $table      = 'commerce_archives';
-    protected $guarded    = [];
+    protected $fillable   = [
+        'archivable_type',
+        'archivable_id',
+        'reason',
+        'archived_by',
+        'snapshot',
+        'archived_at',
+        'restored_at',
+    ];
 
     protected function casts(): array
     {

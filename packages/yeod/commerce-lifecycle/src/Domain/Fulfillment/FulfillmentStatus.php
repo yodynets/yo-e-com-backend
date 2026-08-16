@@ -38,6 +38,7 @@ enum FulfillmentStatus: string implements TransitionableStatus
         };
     }
 
+    /** Determine whether the status is terminal and cannot transition further. */
     public function isFinal(): bool
     {
         return in_array($this, [self::Fulfilled, self::Cancelled], true);

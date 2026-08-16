@@ -15,9 +15,10 @@ final class FulfillmentLineModel extends Model
     public    $incrementing = false;
     public    $timestamps   = false;
     protected $keyType      = 'string';
-    protected $guarded      = [];
     protected $table        = 'commerce_fulfillment_lines';
+    protected $fillable     = ['id', 'fulfillment_id', 'sku', 'ordered_quantity', 'fulfilled_quantity'];
 
+    /** The fulfillment aggregate this line belongs to. */
     public function fulfillment(): BelongsTo
     {
         return $this->belongsTo(FulfillmentModel::class, 'fulfillment_id');

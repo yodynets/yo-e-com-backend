@@ -18,6 +18,8 @@ final readonly class ArchiveService
     public function __construct(private ArchiveRepository $repository) {}
 
     /**
+     * Deep-archive a record without deleting the source data.
+     *
      * @param  array<string, mixed>  $snapshot
      */
     public function archive(
@@ -30,6 +32,9 @@ final readonly class ArchiveService
         $this->repository->archive($type, $id, $snapshot, $reason, $archivedBy);
     }
 
+    /**
+     * Mark the latest archive snapshot of a record as restored.
+     */
     public function restore(string $type, string $id): void
     {
         $this->repository->restore($type, $id);

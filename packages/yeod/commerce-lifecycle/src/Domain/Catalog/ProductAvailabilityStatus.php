@@ -40,11 +40,13 @@ enum ProductAvailabilityStatus: string implements TransitionableStatus
         };
     }
 
+    /** Determine whether the status is terminal and cannot transition further. */
     public function isFinal(): bool
     {
         return $this === self::Discontinued;
     }
 
+    /** Determine whether the product may be sold right now. */
     public function isSellable(): bool
     {
         return $this === self::Available;

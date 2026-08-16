@@ -44,6 +44,7 @@ enum ReturnStatus: string implements TransitionableStatus
         };
     }
 
+    /** Determine whether the status is terminal and cannot transition further. */
     public function isFinal(): bool
     {
         return in_array($this, [self::Rejected, self::Refunded, self::Replaced, self::Closed], true);

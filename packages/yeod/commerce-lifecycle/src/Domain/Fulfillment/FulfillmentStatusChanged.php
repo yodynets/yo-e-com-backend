@@ -19,8 +19,10 @@ final readonly class FulfillmentStatusChanged implements DomainEvent
         private DateTimeImmutable $occurredAt = new DateTimeImmutable(),
     ) {}
 
+    /** Return the stable event name used by an integration bus or outbox. */
     public function eventName(): string { return 'commerce.fulfillment.status_changed'; }
 
+    /** Return a serializable representation of the status change. */
     public function payload(): array
     {
         return [
@@ -31,5 +33,6 @@ final readonly class FulfillmentStatusChanged implements DomainEvent
         ];
     }
 
+    /** Return the time the status change happened. */
     public function occurredAt(): DateTimeImmutable { return $this->occurredAt; }
 }

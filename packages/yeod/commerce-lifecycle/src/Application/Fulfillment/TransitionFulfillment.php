@@ -20,6 +20,8 @@ final readonly class TransitionFulfillment
     ) {}
 
     /**
+     * Apply a guarded transition and dispatch any emitted domain events.
+     *
      * @throws InvalidArgumentException When the fulfillment does not exist.
      */
     public function execute(string $fulfillmentId, FulfillmentStatus $target): void

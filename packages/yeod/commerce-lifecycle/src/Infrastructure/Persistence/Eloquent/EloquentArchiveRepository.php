@@ -12,6 +12,9 @@ use Yeod\CommerceLifecycle\Domain\Archive\ArchiveRepository;
  */
 final class EloquentArchiveRepository implements ArchiveRepository
 {
+    /**
+     * Persist or replace a deep snapshot without deleting the source record.
+     */
     public function archive(
         string $type,
         string $id,
@@ -31,6 +34,9 @@ final class EloquentArchiveRepository implements ArchiveRepository
         );
     }
 
+    /**
+     * Mark the latest snapshot of a record as restored.
+     */
     public function restore(string $type, string $id): void
     {
         ArchiveRecordModel::query()

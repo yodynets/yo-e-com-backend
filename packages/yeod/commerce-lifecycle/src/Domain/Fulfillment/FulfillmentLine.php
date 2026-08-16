@@ -28,14 +28,19 @@ final class FulfillmentLine
         $this->fulfilledQuantity = $fulfilledQuantity;
     }
 
+    /** Return the unique line identifier. */
     public function id(): string { return $this->id; }
 
+    /** Return the SKU this line refers to. */
     public function sku(): string { return $this->sku; }
 
+    /** Return the total quantity ordered for this line. */
     public function orderedQuantity(): int { return $this->orderedQuantity; }
 
+    /** Return the quantity already fulfilled for this line. */
     public function fulfilledQuantity(): int { return $this->fulfilledQuantity; }
 
+    /** Determine whether the whole ordered quantity has been fulfilled. */
     public function isFullyFulfilled(): bool { return $this->fulfilledQuantity === $this->orderedQuantity; }
 
     /**

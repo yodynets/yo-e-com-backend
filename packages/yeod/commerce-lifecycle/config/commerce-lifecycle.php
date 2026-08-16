@@ -2,6 +2,10 @@
 
 declare(strict_types = 1);
 
+/**
+ * Commerce lifecycle package configuration.
+ *
+ * Currently an empty configuration surface reserved for future package options.
+ */
 return [
-    'archive_table' => env('COMMERCE_LIFECYCLE_ARCHIVE_TABLE', 'commerce_archives'),
 ];

@@ -45,9 +45,12 @@ final class Fulfillment
         }
     }
 
+    /** Return the unique fulfillment id. */
     public function id(): string { return $this->id; }
 
     /**
+     * Create a new fulfillment aggregate in the `Scheduled` state.
+     *
      * @param  list<FulfillmentLine>  $lines
      */
     public static function create(string $id, string $orderId, array $lines, array $metadata = []): self
@@ -71,8 +74,10 @@ final class Fulfillment
         return new self($id, $orderId, $status, $lines, $metadata, $createdAt ?? new DateTimeImmutable());
     }
 
+    /** Return the order this fulfillment belongs to. */
     public function orderId(): string { return $this->orderId; }
 
+    /** Return the current aggregate status. */
     public function status(): FulfillmentStatus { return $this->status; }
 
     /** @return array<string, mixed> */
@@ -129,7 +134,7 @@ final class Fulfillment
         $this->domainEvents[] = new FulfillmentStatusChanged($this->id, $from, $target);
     }
 
-    /** @return list<DomainEvent> */
+    /** Return and clear the pending domain events. @return list<DomainEvent> */
     public function releaseEvents(): array
     {
         $events = $this->domainEvents;
@@ -153,8 +158,9 @@ final class Fulfillment
         ];
     }
 
+    /** Return the time the aggregate was created. */
     public function createdAt(): DateTimeImmutable { return $this->createdAt; }
 
-    /** @return list<FulfillmentLine> */
+    /** Return all fulfillment lines. @return list<FulfillmentLine> */
     public function lines(): array { return array_values($this->lines); }
 }

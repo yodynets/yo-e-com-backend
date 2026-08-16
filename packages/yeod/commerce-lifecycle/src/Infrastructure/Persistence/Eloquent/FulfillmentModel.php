@@ -15,9 +15,10 @@ final class FulfillmentModel extends Model
 {
     public    $incrementing = false;
     protected $keyType      = 'string';
-    protected $guarded      = [];
     protected $table        = 'commerce_fulfillments';
+    protected $fillable     = ['id', 'order_id', 'status', 'metadata', 'created_at', 'updated_at'];
 
+    /** The fulfillment lines persisted for this aggregate. */
     public function lines(): HasMany
     {
         return $this->hasMany(FulfillmentLineModel::class, 'fulfillment_id');

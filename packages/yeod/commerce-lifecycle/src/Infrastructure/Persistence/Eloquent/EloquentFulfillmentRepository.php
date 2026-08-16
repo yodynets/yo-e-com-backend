@@ -16,6 +16,7 @@ use Throwable;
  */
 final class EloquentFulfillmentRepository implements FulfillmentRepository
 {
+    /** Find a fulfillment aggregate by id, or null when it does not exist. */
     public function find(string $id): ?Fulfillment
     {
         $model = FulfillmentModel::query()->with('lines')->find($id);
@@ -43,6 +44,8 @@ final class EloquentFulfillmentRepository implements FulfillmentRepository
     }
 
     /**
+     * Persist the aggregate and its lines in a single transaction.
+     *
      * @throws Throwable
      */
     public function save(Fulfillment $fulfillment): void

@@ -32,6 +32,7 @@ enum PaymentStatus: string implements TransitionableStatus
         };
     }
 
+    /** Determine whether the status is terminal and cannot transition further. */
     public function isFinal(): bool
     {
         return in_array($this, [self::Failed, self::Refunded, self::Voided], true);
