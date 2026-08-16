@@ -1,0 +1,40 @@
+{
+  "name": "yeod/commerce-lifecycle",
+  "description": "DDD/Onion domain module for order, payment, fulfillment, shipment, returns, catalog availability and archival lifecycles.",
+  "type": "library",
+  "version": "0.1.0",
+  "license": "MIT",
+  "require": {
+    "php": "^8.3",
+    "illuminate/contracts": "^13.0",
+    "illuminate/database": "^13.0",
+    "illuminate/support": "^13.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^10.0",
+    "phpunit/phpunit": "^12.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Yeod\\CommerceLifecycle\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Yeod\\CommerceLifecycle\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Yeod\\CommerceLifecycle\\CommerceLifecycleServiceProvider"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "phpunit --configuration phpunit.xml.dist",
+    "analyse": "php -l src/Domain/Fulfillment/Fulfillment.php"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

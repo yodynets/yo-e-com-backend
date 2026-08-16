@@ -25,3 +25,9 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+*.bat
+/.docs/
+/**/*.json.example
+/**/LICENSE
+/**/*.local.md
+storage/debugbar

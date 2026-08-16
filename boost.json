@@ -8,6 +8,7 @@
     ],
     "guidelines": true,
     "packages": [
-        "filament/filament"
+        "filament/filament",
+        "fruitcake/laravel-debugbar"
     ]
 }

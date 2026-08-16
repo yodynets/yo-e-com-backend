@@ -1,0 +1,160 @@
+<?php
+
+declare(strict_types = 1);
+
+namespace Yeod\CommerceLifecycle\Domain\Fulfillment;
+
+use DateTimeImmutable;
+use InvalidArgumentException;
+use Yeod\CommerceLifecycle\Contracts\DomainEvent;
+use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentLine;
+use Yeod\CommerceLifecycle\Domain\Shared\TransitionException;
+
+/**
+ * Fulfillment aggregate. Its status is derived from line quantities and
+ * remains independent of payment, shipment, and order statuses.
+ */
+final class Fulfillment
+{
+    /** @var array<string, FulfillmentLine> */
+    private array $lines;
+
+    /** @var list<DomainEvent> */
+    private array $domainEvents = [];
+
+    /**
+     * @param  list<FulfillmentLine>  $lines
+     */
+    private function __construct(
+        private readonly string $id,
+        private readonly string $orderId,
+        private FulfillmentStatus $status,
+        array $lines,
+        private readonly array $metadata = [],
+        private readonly DateTimeImmutable $createdAt = new DateTimeImmutable()
+    ) {
+        if ($id === '' || $orderId === '' || $lines === []) {
+            throw new InvalidArgumentException('A fulfillment requires ids and at least one line.');
+        }
+        $this->lines = [];
+        foreach ($lines as $line) {
+            if (isset($this->lines[$line->id()])) {
+                throw new InvalidArgumentException('Fulfillment line ids must be unique.');
+            }
+            $this->lines[$line->id()] = $line;
+        }
+    }
+
+    public function id(): string { return $this->id; }
+
+    /**
+     * @param  list<FulfillmentLine>  $lines
+     */
+    public static function create(string $id, string $orderId, array $lines, array $metadata = []): self
+    {
+        return new self($id, $orderId, FulfillmentStatus::Scheduled, $lines, $metadata);
+    }
+
+    /**
+     * Reconstitute an aggregate from persistence without emitting events.
+     *
+     * @param  list<FulfillmentLine>  $lines
+     */
+    public static function reconstitute(
+        string $id,
+        string $orderId,
+        FulfillmentStatus $status,
+        array $lines,
+        array $metadata = [],
+        ?DateTimeImmutable $createdAt = null,
+    ): self {
+        return new self($id, $orderId, $status, $lines, $metadata, $createdAt ?? new DateTimeImmutable());
+    }
+
+    public function orderId(): string { return $this->orderId; }
+
+    public function status(): FulfillmentStatus { return $this->status; }
+
+    /** @return array<string, mixed> */
+    public function metadata(): array { return $this->metadata; }
+
+    /**
+     * Fulfill part or all of a line and recalculate the aggregate status.
+     *
+     * @throws InvalidArgumentException
+     * @throws TransitionException
+     */
+    public function fulfillLine(string $lineId, int $quantity): void
+    {
+        if (! isset($this->lines[$lineId])) {
+            throw new InvalidArgumentException(sprintf('Unknown fulfillment line "%s".', $lineId));
+        }
+        if ($this->status === FulfillmentStatus::Scheduled) {
+            $this->changeStatus(FulfillmentStatus::Unfulfilled);
+        }
+        if ($this->status === FulfillmentStatus::OnHold) {
+            throw new InvalidArgumentException('A fulfillment on hold cannot be fulfilled.');
+        }
+        $this->lines[$lineId]->fulfill($quantity);
+        $hasFulfilled = false;
+        $allFulfilled = true;
+        foreach ($this->lines as $line) {
+            $hasFulfilled = $hasFulfilled || $line->fulfilledQuantity() > 0;
+            $allFulfilled = $allFulfilled && $line->isFullyFulfilled();
+        }
+        $target = $allFulfilled
+            ? FulfillmentStatus::Fulfilled
+            : ($hasFulfilled ? FulfillmentStatus::PartiallyFulfilled
+                : FulfillmentStatus::Unfulfilled);
+        if ($this->status !== $target) {
+            $this->changeStatus($target);
+        }
+    }
+
+    /**
+     * Apply a guarded status transition.
+     *
+     * @throws TransitionException
+     */
+    public function changeStatus(FulfillmentStatus $target): void
+    {
+        if ($this->status === $target) {
+            return;
+        }
+        if (! $this->status->canTransitionTo($target)) {
+            throw TransitionException::from($this->status, $target);
+        }
+        $from = $this->status;
+        $this->status = $target;
+        $this->domainEvents[] = new FulfillmentStatusChanged($this->id, $from, $target);
+    }
+
+    /** @return list<DomainEvent> */
+    public function releaseEvents(): array
+    {
+        $events = $this->domainEvents;
+        $this->domainEvents = [];
+
+        return $events;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'id'         => $this->id,
+            'order_id'   => $this->orderId,
+            'status'     => $this->status->value,
+            'metadata'   => $this->metadata,
+            'created_at' => $this->createdAt()->format(DATE_ATOM),
+            'lines'      => array_map(static fn(FulfillmentLine $line): array => $line->toArray(), $this->lines()),
+        ];
+    }
+
+    public function createdAt(): DateTimeImmutable { return $this->createdAt; }
+
+    /** @return list<FulfillmentLine> */
+    public function lines(): array { return array_values($this->lines); }
+}
