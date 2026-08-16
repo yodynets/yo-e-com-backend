@@ -109,14 +109,13 @@ Derived from line quantities: the aggregate recomputes its status from
 | `discontinued` | Permanently removed from sale; terminal. |
 | `archived` | Hidden from the catalog; can be revived to `draft`. |
 
-## ArchiveState
+## Archiving
 
-Not a business status: orthogonal operational visibility metadata.
-
-| Value | Meaning |
-| --- | --- |
-| `active` | Record visible in normal operational queries. |
-| `archived` | Record hidden from normal queries; snapshot kept. |
+Archiving is orthogonal to the business lifecycle: it is not a fake business status
+and it never deletes the source record. The package provides the mechanism — a deep
+JSON snapshot stored in the `commerce_archives` table via `ArchiveService` — but the
+decision of when and what to archive belongs to the host application. A purge
+operation is deliberately not included.
 
 ## Transition rules
 
