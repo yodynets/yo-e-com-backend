@@ -3,10 +3,10 @@
 declare(strict_types = 1);
 
 use PHPUnit\Framework\TestCase;
+use Yeod\CommerceLifecycle\Exceptions\InvalidTransitionException;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\Fulfillment;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentLine;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentStatus;
-use Yeod\CommerceLifecycle\Domain\Shared\TransitionException;
 
 final class FulfillmentTest extends TestCase
 {
@@ -30,7 +30,7 @@ final class FulfillmentTest extends TestCase
         $fulfillment->changeStatus(FulfillmentStatus::Unfulfilled);
         $fulfillment->changeStatus(FulfillmentStatus::Fulfilled);
 
-        $this->expectException(TransitionException::class);
+        $this->expectException(InvalidTransitionException::class);
         $fulfillment->changeStatus(FulfillmentStatus::Unfulfilled);
     }
 }

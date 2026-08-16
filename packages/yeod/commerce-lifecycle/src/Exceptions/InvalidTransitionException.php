@@ -1,16 +1,15 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace Yeod\CommerceLifecycle\Domain\Shared;
+namespace Yeod\CommerceLifecycle\Exceptions;
 
-use DomainException;
 use UnitEnum;
 
 /**
  * Thrown when a domain object receives a transition that violates its graph.
  */
-final class TransitionException extends DomainException
+final class InvalidTransitionException extends CommerceLifecycleException
 {
     public static function from(UnitEnum $from, UnitEnum $to): self
     {

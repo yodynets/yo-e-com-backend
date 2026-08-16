@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use InvalidArgumentException;
 use Yeod\CommerceLifecycle\Contracts\DomainEvent;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentLine;
-use Yeod\CommerceLifecycle\Domain\Shared\TransitionException;
+use Yeod\CommerceLifecycle\Exceptions\InvalidTransitionException;
 
 /**
  * Fulfillment aggregate. Its status is derived from line quantities and
@@ -122,7 +122,7 @@ final class Fulfillment
             return;
         }
         if (! $this->status->canTransitionTo($target)) {
-            throw TransitionException::from($this->status, $target);
+            throw InvalidTransitionException::from($this->status, $target);
         }
         $from = $this->status;
         $this->status = $target;
