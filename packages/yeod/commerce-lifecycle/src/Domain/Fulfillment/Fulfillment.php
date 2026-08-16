@@ -24,6 +24,7 @@ final class Fulfillment
 
     /**
      * @param  list<FulfillmentLine>  $lines
+     * @param  array<string, mixed>   $metadata
      */
     private function __construct(
         private readonly string $id,
@@ -31,7 +32,8 @@ final class Fulfillment
         private FulfillmentStatus $status,
         array $lines,
         private readonly array $metadata = [],
-        private readonly DateTimeImmutable $createdAt = new DateTimeImmutable()
+        private readonly DateTimeImmutable $createdAt = new DateTimeImmutable(),
+        private int $version = 1
     ) {
         if ($id === '' || $orderId === '' || $lines === []) {
             throw new InvalidArgumentException('A fulfillment requires ids and at least one line.');
@@ -52,16 +54,18 @@ final class Fulfillment
      * Create a new fulfillment aggregate in the `Scheduled` state.
      *
      * @param  list<FulfillmentLine>  $lines
+     * @param  array<string, mixed>   $metadata
      */
     public static function create(string $id, string $orderId, array $lines, array $metadata = []): self
     {
-        return new self($id, $orderId, FulfillmentStatus::Scheduled, $lines, $metadata);
+        return new self($id, $orderId, FulfillmentStatus::Scheduled, $lines, $metadata, version: 1);
     }
 
     /**
      * Reconstitute an aggregate from persistence without emitting events.
      *
      * @param  list<FulfillmentLine>  $lines
+     * @param  array<string, mixed>   $metadata
      */
     public static function reconstitute(
         string $id,
@@ -70,8 +74,9 @@ final class Fulfillment
         array $lines,
         array $metadata = [],
         ?DateTimeImmutable $createdAt = null,
+        int $version = 1,
     ): self {
-        return new self($id, $orderId, $status, $lines, $metadata, $createdAt ?? new DateTimeImmutable());
+        return new self($id, $orderId, $status, $lines, $metadata, $createdAt ?? new DateTimeImmutable(), $version);
     }
 
     /** Return the order this fulfillment belongs to. */
@@ -107,10 +112,11 @@ final class Fulfillment
             $hasFulfilled = $hasFulfilled || $line->fulfilledQuantity() > 0;
             $allFulfilled = $allFulfilled && $line->isFullyFulfilled();
         }
-        $target = $allFulfilled
-            ? FulfillmentStatus::Fulfilled
-            : ($hasFulfilled ? FulfillmentStatus::PartiallyFulfilled
-                : FulfillmentStatus::Unfulfilled);
+        $target = match (true) {
+            $allFulfilled => FulfillmentStatus::Fulfilled,
+            $hasFulfilled => FulfillmentStatus::PartiallyFulfilled,
+            default       => FulfillmentStatus::Unfulfilled,
+        };
         if ($this->status !== $target) {
             $this->changeStatus($target);
         }
@@ -134,7 +140,11 @@ final class Fulfillment
         $this->domainEvents[] = new FulfillmentStatusChanged($this->id, $from, $target);
     }
 
-    /** Return and clear the pending domain events. @return list<DomainEvent> */
+    /**
+     * Return and clear the pending domain events.
+     *
+     * @return list<DomainEvent>
+     */
     public function releaseEvents(): array
     {
         $events = $this->domainEvents;
@@ -161,6 +171,22 @@ final class Fulfillment
     /** Return the time the aggregate was created. */
     public function createdAt(): DateTimeImmutable { return $this->createdAt; }
 
-    /** Return all fulfillment lines. @return list<FulfillmentLine> */
+    /** Return the aggregate version used for optimistic concurrency control. */
+    public function version(): int { return $this->version; }
+
+    /**
+     * Advance the local version after a successful persisted update so that
+     * repeated saves without a reload remain coherent.
+     */
+    public function bumpVersion(): void
+    {
+        $this->version++;
+    }
+
+    /**
+     * Return all fulfillment lines.
+     *
+     * @return list<FulfillmentLine>
+     */
     public function lines(): array { return array_values($this->lines); }
 }

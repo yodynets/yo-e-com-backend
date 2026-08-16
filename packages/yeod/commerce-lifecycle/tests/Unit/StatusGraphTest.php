@@ -173,7 +173,7 @@ final class StatusGraphTest extends TestCase
 
     public function test_is_final_reports_terminal_states_per_context(): void
     {
-        self::assertTrue(OrderStatus::Completed->isFinal());
+        self::assertFalse(OrderStatus::Completed->isFinal());
         self::assertTrue(OrderStatus::Cancelled->isFinal());
         self::assertFalse(OrderStatus::Pending->isFinal());
 

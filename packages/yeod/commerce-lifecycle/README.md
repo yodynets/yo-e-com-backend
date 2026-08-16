@@ -35,6 +35,8 @@ php artisan migrate
 ## Documentation
 
 - [API reference](docs/api.md) — every public method with code examples.
+- [Database schema](docs/database.md) — tables, indexes, and the rationale behind
+  each design decision.
 - [Statuses reference](docs/statuses.md) — meaning of every status value.
 - [Architecture notes](docs/architecture.md) — layering and design decisions.
 - [Positioning](docs/positioning.md) — why it is a separate package and how it
@@ -70,6 +72,13 @@ Every transition is guarded by `canTransitionTo()`. Invalid transitions throw `I
 The `Domain` layer contains enums, entities, value objects, events, and repository contracts. `Application` contains use-case services. `Infrastructure` contains the Laravel service provider, Eloquent models, repositories, and migrations. A host application may replace the Eloquent repository with another adapter by rebinding `FulfillmentRepository`.
 
 The archive table stores a JSON snapshot and metadata so records can disappear from normal operational queries without being destroyed. Use `ArchiveService::archive()` and `ArchiveService::restore()` for deep archival and recovery. A purge operation is deliberately not included: purge is destructive and should be an explicit, application-specific retention job.
+
+### Optimistic concurrency
+
+`Fulfillment` aggregates carry a `version` column that guards concurrent updates. A
+write only succeeds when the stored version matches the version the aggregate was
+loaded with; otherwise `StaleAggregateException` is thrown and the caller reloads
+and retries. Repeated saves of the same in-memory aggregate advance the version.
 
 ### Archiving in practice
 
@@ -130,3 +139,7 @@ Once the package is extracted into its own repository, install its dependencies 
 composer install
 composer test
 ```
+
+The package declares `ext-pdo_sqlite` in its `require-dev`, so `composer install`
+validates that the SQLite PDO driver is available. If your PHP lacks it, enable it
+(e.g. `php -d extension=pdo_sqlite`) before installing dev dependencies.

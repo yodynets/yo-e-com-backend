@@ -47,6 +47,6 @@ enum OrderStatus: string implements TransitionableStatus
     /** Determine whether the status is terminal and cannot transition further. */
     public function isFinal(): bool
     {
-        return in_array($this, [self::Completed, self::Cancelled, self::Refunded], true);
+        return in_array($this, [self::Cancelled, self::Refunded], true);
     }
 }

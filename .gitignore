@@ -27,7 +27,7 @@ Homestead.yaml
 Thumbs.db
 *.bat
 /.docs/
-/**/*.json.example
-/**/LICENSE
 /**/*.local.md
 storage/debugbar
+*.cache
+/packages/yeod/commerce-lifecycle/vendor/

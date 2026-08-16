@@ -9,6 +9,9 @@ use Yeod\CommerceLifecycle\Domain\Archive\ArchiveRepository;
 
 /**
  * Eloquent adapter for deep archive snapshots.
+ *
+ * Security: All database parameters are bound using Eloquent's parameter binding.
+ * No string interpolation is used in queries.
  */
 final class EloquentArchiveRepository implements ArchiveRepository
 {
@@ -41,9 +44,10 @@ final class EloquentArchiveRepository implements ArchiveRepository
      */
     public function restore(string $type, string $id): void
     {
+        // All user inputs ($type, $id) are bound as parameters, not concatenated
         ArchiveRecordModel::query()
-            ->where('archivable_type', $type)
-            ->where('archivable_id', $id)
+            ->where('archivable_type', '=', $type)  // Explicit operator for clarity
+            ->where('archivable_id', '=', $id)       // Explicit operator for clarity
             ->update(['restored_at' => Carbon::now()]);
     }
 
@@ -63,6 +67,7 @@ final class EloquentArchiveRepository implements ArchiveRepository
         return ArchiveRecordModel::query()
             ->where('archivable_type', $type)
             ->where('archivable_id', $id)
+            ->whereNull('restored_at')
             ->exists();
     }
 }

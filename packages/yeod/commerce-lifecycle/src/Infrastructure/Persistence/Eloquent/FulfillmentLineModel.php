@@ -9,6 +9,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Persistence model for a fulfillment line.
+ *
+ * @property string           $id
+ * @property string           $fulfillment_id
+ * @property string           $sku
+ * @property int              $ordered_quantity
+ * @property int              $fulfilled_quantity
+ * @property FulfillmentModel $fulfillment
  */
 final class FulfillmentLineModel extends Model
 {
@@ -18,7 +25,11 @@ final class FulfillmentLineModel extends Model
     protected $table        = 'commerce_fulfillment_lines';
     protected $fillable     = ['id', 'fulfillment_id', 'sku', 'ordered_quantity', 'fulfilled_quantity'];
 
-    /** The fulfillment aggregate this line belongs to. */
+    /**
+     * The fulfillment aggregate this line belongs to.
+     *
+     * @return BelongsTo<FulfillmentModel, $this>
+     */
     public function fulfillment(): BelongsTo
     {
         return $this->belongsTo(FulfillmentModel::class, 'fulfillment_id');

@@ -29,7 +29,7 @@ $current->canTransitionTo(OrderStatus::Cancelled);        // true
 $current->canTransitionTo(OrderStatus::Completed);        // false — must go through Shipped
 
 // Terminal states
-OrderStatus::Completed->isFinal();  // true
+OrderStatus::Completed->isFinal();  // false — can still transition to Refunded
 OrderStatus::Cancelled->isFinal();  // true
 OrderStatus::Pending->isFinal();    // false
 
@@ -189,8 +189,32 @@ $fulfillment->orderId();         // 'ord_01J'
 $fulfillment->status();          // FulfillmentStatus::PartiallyFulfilled
 $fulfillment->metadata();        // ['source' => 'web']
 $fulfillment->createdAt();       // DateTimeImmutable
+$fulfillment->version();         // optimistic-concurrency version
 $fulfillment->lines();           // list<FulfillmentLine>
 $fulfillment->toArray();         // serializable array
+```
+
+### Optimistic concurrency
+
+Every `Fulfillment` carries a `version`. The Eloquent repository persists it with
+optimistic locking: a `save()` only updates a **previously persisted** fulfillment
+when the stored version still matches the version the aggregate was loaded with. On
+success the stored version advances by one; if another process already bumped the
+stored version, a `StaleAggregateException` is thrown and the caller must reload and
+retry. Repeated saves of the same in-memory aggregate (without a reload) are allowed
+and keep advancing the version.
+
+```php
+use Yeod\CommerceLifecycle\Exceptions\StaleAggregateException;
+
+$fulfillment = $repository->find('ful_01J'); // version 3
+// … another process modified the same row in the meantime …
+
+try {
+    $repository->save($fulfillment);
+} catch (StaleAggregateException $e) {
+    $fresh = $repository->find('ful_01J'); // reload and re-apply
+}
 ```
 
 ### Domain events
@@ -247,6 +271,10 @@ $fulfillment = $repository->find('ful_01J'); // ?Fulfillment
 $repository->save($fulfillment);             // persists aggregate + lines
 ```
 
+`save()` runs atomically (in a transaction) and is guarded by the optimistic
+version check above; it throws `StaleAggregateException` when the aggregate was
+modified concurrently since it was loaded.
+
 ---
 
 ## TransitionFulfillment (use case)
@@ -291,9 +319,22 @@ $archiver->restore(type: 'fulfillment', id: 'ful_01J');
 // Read the stored snapshot back, or null when not archived
 $snapshot = $archiver->findSnapshot('fulfillment', 'ful_01J');
 
-// Ask whether a record currently has an archived snapshot
+// Ask whether a record currently has an active (non-restored) archived snapshot
 $archived = $archiver->isArchived('fulfillment', 'ful_01J');
 ```
+
+`ArchiveService` validates its input before persisting:
+
+- `type` and `id` must be non-empty (≤ 255 characters).
+- an optional `reason` may not exceed the `max_reason_length` limit;
+- `snapshot` must be non-empty, JSON-serializable, and not exceed the
+  `max_snapshot_size` (kilobytes) limit.
+
+Both limits come from config and are injected by the service provider. When an
+optional `Authorizer` is configured, `archive()` is guarded by
+`Authorizer::can('archive', $type)` and throws `NotAuthorizedException` on denial.
+`isArchived()` reports only **active** snapshots — after `restore()` it returns
+`false` even though the archived row is retained for audit.
 
 ### ArchiveRepository (contract)
 
@@ -340,6 +381,10 @@ $event->payload();         // ['fulfillment_id' => 'ful_01J', 'from' => 'unfulfi
 $event->occurredAt();      // DateTimeImmutable
 ```
 
+Events are published through the `DomainEventDispatcher` port (bound to
+`LaravelDomainEventDispatcher` in the provider). The host may rebind this port to
+route events into its own outbox or queue integration.
+
 ---
 
 ## Exceptions
@@ -347,6 +392,8 @@ $event->occurredAt();      // DateTimeImmutable
 ```php
 use Yeod\CommerceLifecycle\Exceptions\CommerceLifecycleException;
 use Yeod\CommerceLifecycle\Exceptions\InvalidTransitionException;
+use Yeod\CommerceLifecycle\Exceptions\NotAuthorizedException;
+use Yeod\CommerceLifecycle\Exceptions\StaleAggregateException;
 
 // Catch all package business exceptions with one type
 try {
@@ -415,6 +462,24 @@ The package registers its own `CommerceLifecycleServiceProvider` which:
 - Merges the package config (`config/commerce-lifecycle.php`).
 - Binds `FulfillmentRepository` to `EloquentFulfillmentRepository`.
 - Binds `ArchiveRepository` to `EloquentArchiveRepository`.
+- Binds `DomainEventDispatcher` to `LaravelDomainEventDispatcher`.
+- Binds `ArchiveService` from the published config (`max_snapshot_size`,
+  `max_reason_length`) and the configured `Authorizer`.
+- Registers an `Authorizer` singleton, defaulting to the no-op `AllowAllAuthorizer`.
+
+### Configuration
+
+```php
+// config/commerce-lifecycle.php
+return [
+    'authorizer'        => env('YEOD_COMMERCE_LIFECYCLE_AUTHORIZER', AllowAllAuthorizer::class),
+    'max_snapshot_size' => (int) env('YEOD_COMMERCE_LIFECYCLE_MAX_SNAPSHOT_SIZE', 512),    // kilobytes
+    'max_reason_length' => (int) env('YEOD_COMMERCE_LIFECYCLE_MAX_REASON_LENGTH', 1000),   // bytes
+];
+```
+
+The `authorizer` key may point to any class implementing `Authorizer`; the default
+`AllowAllAuthorizer` permits every action.
 
 Publishable resources:
 

@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->string('order_id')->index();
             $table->string('status')->index();
             $table->json('metadata')->nullable();
+            $table->unsignedInteger('version')->default(1);
             $table->timestamps();
         });
 

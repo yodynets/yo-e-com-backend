@@ -38,7 +38,7 @@ similar (for example `cancelled`).
 | `awaiting_fulfillment` | Order placed but fulfillment has not started. |
 | `awaiting_pickup` | Order ready for pickup at a physical location. |
 | `shipped` | Order handed to a carrier. |
-| `completed` | Order reached the customer; terminal. |
+| `completed` | Order reached the customer; not final — may later transition to refunded. |
 | `cancelled` | Order cancelled; terminal. |
 | `refunded` | Money returned; terminal. |
 
