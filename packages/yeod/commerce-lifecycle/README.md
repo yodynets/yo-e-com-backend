@@ -25,6 +25,12 @@ php artisan vendor:publish --tag=commerce-lifecycle-migrations
 php artisan migrate
 ```
 
+## Documentation
+
+- [API reference](docs/api.md) — every public method with code examples.
+- [Statuses reference](docs/statuses.md) — meaning of every status value.
+- [Architecture notes](docs/architecture.md) — layering and design decisions.
+
 ## Example
 
 ```php
