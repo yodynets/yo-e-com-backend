@@ -19,6 +19,18 @@ another status of the same context; passing a status from another axis is a hard
 
 Archiving is orthogonal to the business lifecycle. A fulfilled order can be active or archived; a cancelled order can be active or archived. The archive snapshot supports analytics and audit use cases. Restore is possible while purge remains outside the package.
 
+The package only provides the mechanism — `ArchiveService::archive()` / `restore()`
+persist a JSON snapshot into the `commerce_archives` table. It never deletes the
+source record. The decision of **when** and **what** to archive belongs to the host
+application. Typical triggers:
+
+- Legal/privacy requirements (a record must disappear from operational queries).
+- Retention windows (fulfilled orders older than N years).
+- Operational hygiene (removing noise from the active read model).
+
+To use it, resolve `ArchiveService` from the container and pass the aggregate's
+`toArray()` snapshot plus a reason, exactly as shown in the README example.
+
 ## Extension points
 
 - Rebind repository contracts to a document store or another SQL adapter.

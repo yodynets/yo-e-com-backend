@@ -56,6 +56,32 @@ The `Domain` layer contains enums, entities, value objects, events, and reposito
 
 The archive table stores a JSON snapshot and metadata so records can disappear from normal operational queries without being destroyed. Use `ArchiveService::archive()` and `ArchiveService::restore()` for deep archival and recovery. A purge operation is deliberately not included: purge is destructive and should be an explicit, application-specific retention job.
 
+### Archiving in practice
+
+The host application decides when and what to archive. A typical use is to hide a
+record from operational queries (for example, a fulfilled order older than the
+retention window) while keeping a snapshot for analytics and audit:
+
+```php
+use Yeod\CommerceLifecycle\Application\Archive\ArchiveService;
+
+$archiver = app(ArchiveService::class);
+
+$archiver->archive(
+    type: 'fulfillment',
+    id: $fulfillment->id(),
+    snapshot: $fulfillment->toArray(),
+    reason: 'retention window passed',
+    archivedBy: 'scheduled-job',
+);
+
+// Later, when the record needs to become visible again:
+$archiver->restore(type: 'fulfillment', id: $fulfillment->id());
+```
+
+`ArchiveService::archive()` stores the snapshot and metadata, it never deletes the
+source record; hiding it from operational queries is the host application's job.
+
 ## Status model
 
 The package includes explicit transition graphs for `OrderStatus`, `PaymentStatus`, `FulfillmentStatus`, `ShipmentStatus`, `ReturnStatus`, and `ProductAvailabilityStatus`. These are intentionally separate types even when values such as `pending`, `cancelled`, or `completed` look similar.
