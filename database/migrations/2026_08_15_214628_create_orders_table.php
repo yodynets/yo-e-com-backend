@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Yeod\CommerceLifecycle\Domain\Order\OrderStatus;
 
 return new class extends Migration {
 
@@ -24,7 +25,7 @@ return new class extends Migration {
             $table->decimal('total_amount', 15, 4)->default(0.0);
             $table->decimal('paid_amount', 15, 4)->default(0.0);
             $table->decimal('due_amount', 15, 4)->default(0.0);
-            $table->string('status', 'pending', 'awaiting_payment', 'processing', 'shipped')->default('pending');
+            $table->string('status')->default(OrderStatus::Pending->value);
             $table->timestampsTz();
         });
     }
@@ -34,6 +35,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('purchases');
+        Schema::dropIfExists('orders');
     }
 };
