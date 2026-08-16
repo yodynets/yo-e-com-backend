@@ -82,7 +82,7 @@ final class Fulfillment
      * Fulfill part or all of a line and recalculate the aggregate status.
      *
      * @throws InvalidArgumentException
-     * @throws TransitionException
+     * @throws InvalidTransitionException
      */
     public function fulfillLine(string $lineId, int $quantity): void
     {
@@ -114,7 +114,7 @@ final class Fulfillment
     /**
      * Apply a guarded status transition.
      *
-     * @throws TransitionException
+     * @throws InvalidTransitionException
      */
     public function changeStatus(FulfillmentStatus $target): void
     {

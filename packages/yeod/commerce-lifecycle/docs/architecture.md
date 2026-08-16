@@ -10,6 +10,11 @@ The package is a reusable commerce-lifecycle kernel, not an all-in-one Order agg
 
 A status transition is a business invariant. Keeping the transition graph next to the enum makes it discoverable, testable, and reusable from commands, jobs, imports, and APIs. It also avoids controllers slowly becoming a second domain model.
 
+`canTransitionTo()` intentionally takes only `self` (the same status type) and is **not**
+part of the shared `TransitionableStatus` interface. A status may only ever move towards
+another status of the same context; passing a status from another axis is a hard
+`TypeError`, so cross-context mixing is rejected by the language, not by convention.
+
 ## Archiving
 
 Archiving is orthogonal to the business lifecycle. A fulfilled order can be active or archived; a cancelled order can be active or archived. The archive snapshot supports analytics and audit use cases. Restore is possible while purge remains outside the package.

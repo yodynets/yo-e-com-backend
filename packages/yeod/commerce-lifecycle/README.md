@@ -31,7 +31,7 @@ php artisan migrate
 use Yeod\CommerceLifecycle\Domain\Fulfillment\Fulfillment;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentLine;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentStatus;
-use Yeod\CommerceLifecycle\Domain\Shared\TransitionException;
+use Yeod\CommerceLifecycle\Exceptions\InvalidTransitionException;
 
 $fulfillment = Fulfillment::create(
     id: 'ful_01J...',
@@ -48,7 +48,7 @@ $fulfillment->fulfillLine('line-1', 1);
 // status: Fulfilled
 ```
 
-Every transition is guarded by `canTransitionTo()`. Invalid transitions throw `TransitionException`; controllers and Eloquent observers do not own business rules.
+Every transition is guarded by `canTransitionTo()`. Invalid transitions throw `InvalidTransitionException`; controllers and Eloquent observers do not own business rules.
 
 ## Boundaries and persistence
 
