@@ -16,6 +16,13 @@ This package follows the useful distinction described by Locad:
 
 The package intentionally does not make Eloquent models the domain model. Laravel is an adapter at the edge; the domain can be unit-tested without the framework.
 
+> **Positioning:** this is a *lifecycle kernel*, not an e-commerce application.
+> It models statuses, transitions, fulfillment, and archival — it does not model
+> your shop's `orders`, `products`, `suppliers`, or `order_items`. Those live in
+> the host application and link to the package by plain identifiers. See
+> [docs/positioning.md](docs/positioning.md) for the boundary and how to reuse it
+> as a full merchant domain.
+
 ## Installation
 
 ```bash
@@ -30,6 +37,8 @@ php artisan migrate
 - [API reference](docs/api.md) — every public method with code examples.
 - [Statuses reference](docs/statuses.md) — meaning of every status value.
 - [Architecture notes](docs/architecture.md) — layering and design decisions.
+- [Positioning](docs/positioning.md) — why it is a separate package and how it
+  binds to a shop (or grows into a merchant domain).
 
 ## Example
 
