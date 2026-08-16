@@ -26,7 +26,7 @@ enum ReturnStatus: string implements TransitionableStatus
      *
      * @return bool
      */
-    public function canTransitionTo(TransitionableStatus $target): bool
+    public function canTransitionTo(self $target): bool
     {
         return match ($this) {
             self::Requested => in_array($target, [self::Approved, self::Rejected], true),

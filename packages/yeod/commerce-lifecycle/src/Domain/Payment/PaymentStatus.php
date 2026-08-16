@@ -21,7 +21,7 @@ enum PaymentStatus: string implements TransitionableStatus
      *
      * @return bool
      */
-    public function canTransitionTo(TransitionableStatus $target): bool
+    public function canTransitionTo(self $target): bool
     {
         return match ($this) {
             self::Pending => in_array($target, [self::Authorized, self::Captured, self::Failed, self::Voided], true),

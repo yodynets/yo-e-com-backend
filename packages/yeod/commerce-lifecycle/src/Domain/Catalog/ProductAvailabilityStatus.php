@@ -20,7 +20,7 @@ enum ProductAvailabilityStatus: string implements TransitionableStatus
      *
      * @return bool
      */
-    public function canTransitionTo(TransitionableStatus $target): bool
+    public function canTransitionTo(self $target): bool
     {
         return match ($this) {
             self::Draft => in_array($target, [self::Scheduled, self::Available, self::Archived], true),

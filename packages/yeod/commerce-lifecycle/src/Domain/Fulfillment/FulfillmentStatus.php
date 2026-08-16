@@ -20,7 +20,7 @@ enum FulfillmentStatus: string implements TransitionableStatus
      *
      * @return bool
      */
-    public function canTransitionTo(TransitionableStatus $target): bool
+    public function canTransitionTo(self $target): bool
     {
         return match ($this) {
             self::Scheduled => in_array($target, [self::Unfulfilled, self::OnHold, self::Cancelled], true),

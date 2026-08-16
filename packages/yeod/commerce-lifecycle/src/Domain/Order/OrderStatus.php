@@ -23,7 +23,7 @@ enum OrderStatus: string implements TransitionableStatus
      *
      * @return bool
      */
-    public function canTransitionTo(TransitionableStatus $target): bool
+    public function canTransitionTo(self $target): bool
     {
         return match ($this) {
             self::Pending, self::PaymentFailed => in_array($target, [self::AwaitingPayment, self::Cancelled], true),

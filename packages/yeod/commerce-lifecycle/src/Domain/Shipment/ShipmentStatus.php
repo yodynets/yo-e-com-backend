@@ -22,7 +22,7 @@ enum ShipmentStatus: string implements TransitionableStatus
      *
      * @return bool
      */
-    public function canTransitionTo(TransitionableStatus $target): bool
+    public function canTransitionTo(self $target): bool
     {
         return match ($this) {
             self::LabelCreated => in_array($target, [self::AwaitingPickup, self::Cancelled], true),
