@@ -14,7 +14,7 @@ namespace Yeod\CommerceLifecycle\Application;
  */
 final class DenyAllAuthorizer implements Authorizer
 {
-    public function can(string $action, string $resourceType): bool
+    public function can(string $action, string $resourceType): false
     {
         return false;
     }
