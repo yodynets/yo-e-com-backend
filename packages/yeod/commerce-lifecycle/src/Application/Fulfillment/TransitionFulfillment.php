@@ -1,13 +1,13 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Application\Fulfillment;
 
-use InvalidArgumentException;
 use Yeod\CommerceLifecycle\Contracts\DomainEventDispatcher;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentRepository;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentStatus;
+use Yeod\CommerceLifecycle\Exceptions\InvalidArgumentException;
 use Yeod\CommerceLifecycle\Exceptions\InvalidTransitionException;
 
 /**

@@ -251,8 +251,13 @@ $line->fulfilledQuantity(); // 2
 $line->isFullyFulfilled();  // false (2 < 5)
 $line->toArray();           // ['id' => 'line-1', 'sku' => 'sku-123', …]
 
-$line->fulfill(3);          // now fulfilledQuantity = 5
-$line->isFullyFulfilled();  // true
+// Lines are immutable: fulfilling returns a NEW instance, the original stays put.
+$fulfilled = $line->withFulfilled(3); // fulfilledQuantity = 5
+$fulfilled->isFullyFulfilled();       // true
+$line->fulfilledQuantity();           // still 2
+
+// Fulfillment always goes through the aggregate so status recalculates:
+$fulfillment->fulfillLine('line-1', 3);
 ```
 
 ---

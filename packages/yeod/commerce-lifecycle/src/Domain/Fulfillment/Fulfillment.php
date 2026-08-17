@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Domain\Fulfillment;
 
 use DateTimeImmutable;
-use InvalidArgumentException;
 use Yeod\CommerceLifecycle\Contracts\DomainEvent;
-use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentLine;
+use Yeod\CommerceLifecycle\Exceptions\InvalidArgumentException;
 use Yeod\CommerceLifecycle\Exceptions\InvalidTransitionException;
 
 /**
@@ -24,7 +23,7 @@ final class Fulfillment
 
     /**
      * @param  list<FulfillmentLine>  $lines
-     * @param  array<string, mixed>   $metadata
+     * @param  array<string, mixed>  $metadata
      */
     private function __construct(
         private readonly string $id,
@@ -32,7 +31,7 @@ final class Fulfillment
         private FulfillmentStatus $status,
         array $lines,
         private readonly array $metadata = [],
-        private readonly DateTimeImmutable $createdAt = new DateTimeImmutable(),
+        private readonly DateTimeImmutable $createdAt = new DateTimeImmutable,
         private int $version = 1
     ) {
         if ($id === '' || $orderId === '' || $lines === []) {
@@ -48,13 +47,16 @@ final class Fulfillment
     }
 
     /** Return the unique fulfillment id. */
-    public function id(): string { return $this->id; }
+    public function id(): string
+    {
+        return $this->id;
+    }
 
     /**
      * Create a new fulfillment aggregate in the `Scheduled` state.
      *
      * @param  list<FulfillmentLine>  $lines
-     * @param  array<string, mixed>   $metadata
+     * @param  array<string, mixed>  $metadata
      */
     public static function create(string $id, string $orderId, array $lines, array $metadata = []): self
     {
@@ -64,8 +66,10 @@ final class Fulfillment
     /**
      * Reconstitute an aggregate from persistence without emitting events.
      *
+     * @internal Persistence adapters only. Application code must use create().
+     *
      * @param  list<FulfillmentLine>  $lines
-     * @param  array<string, mixed>   $metadata
+     * @param  array<string, mixed>  $metadata
      */
     public static function reconstitute(
         string $id,
@@ -76,47 +80,67 @@ final class Fulfillment
         ?DateTimeImmutable $createdAt = null,
         int $version = 1,
     ): self {
-        return new self($id, $orderId, $status, $lines, $metadata, $createdAt ?? new DateTimeImmutable(), $version);
+        return new self($id, $orderId, $status, $lines, $metadata, $createdAt ?? new DateTimeImmutable, $version);
     }
 
     /** Return the order this fulfillment belongs to. */
-    public function orderId(): string { return $this->orderId; }
+    public function orderId(): string
+    {
+        return $this->orderId;
+    }
 
     /** Return the current aggregate status. */
-    public function status(): FulfillmentStatus { return $this->status; }
+    public function status(): FulfillmentStatus
+    {
+        return $this->status;
+    }
 
     /** @return array<string, mixed> */
-    public function metadata(): array { return $this->metadata; }
+    public function metadata(): array
+    {
+        return $this->metadata;
+    }
 
     /**
      * Fulfill part or all of a line and recalculate the aggregate status.
+     *
+     * Validation happens before any mutation: an invalid quantity raises before
+     * the status changes or any domain event is queued, so a failed call never
+     * leaves the aggregate partially updated.
      *
      * @throws InvalidArgumentException
      * @throws InvalidTransitionException
      */
     public function fulfillLine(string $lineId, int $quantity): void
     {
+        if ($this->status === FulfillmentStatus::OnHold) {
+            throw InvalidTransitionException::from($this->status, FulfillmentStatus::PartiallyFulfilled);
+        }
         if (! isset($this->lines[$lineId])) {
             throw new InvalidArgumentException(sprintf('Unknown fulfillment line "%s".', $lineId));
         }
+
+        // Resolve the line immutably first: withFulfilled() validates and either
+        // returns a new line or throws — before we mutate status or emit events.
+        $this->lines[$lineId] = $this->lines[$lineId]->withFulfilled($quantity);
+
         if ($this->status === FulfillmentStatus::Scheduled) {
             $this->changeStatus(FulfillmentStatus::Unfulfilled);
         }
-        if ($this->status === FulfillmentStatus::OnHold) {
-            throw new InvalidArgumentException('A fulfillment on hold cannot be fulfilled.');
-        }
-        $this->lines[$lineId]->fulfill($quantity);
+
         $hasFulfilled = false;
         $allFulfilled = true;
         foreach ($this->lines as $line) {
             $hasFulfilled = $hasFulfilled || $line->fulfilledQuantity() > 0;
             $allFulfilled = $allFulfilled && $line->isFullyFulfilled();
         }
+
         $target = match (true) {
             $allFulfilled => FulfillmentStatus::Fulfilled,
             $hasFulfilled => FulfillmentStatus::PartiallyFulfilled,
-            default       => FulfillmentStatus::Unfulfilled,
+            default => FulfillmentStatus::Unfulfilled,
         };
+
         if ($this->status !== $target) {
             $this->changeStatus($target);
         }
@@ -159,20 +183,26 @@ final class Fulfillment
     public function toArray(): array
     {
         return [
-            'id'         => $this->id,
-            'order_id'   => $this->orderId,
-            'status'     => $this->status->value,
-            'metadata'   => $this->metadata,
+            'id' => $this->id,
+            'order_id' => $this->orderId,
+            'status' => $this->status->value,
+            'metadata' => $this->metadata,
             'created_at' => $this->createdAt()->format(DATE_ATOM),
-            'lines'      => array_map(static fn(FulfillmentLine $line): array => $line->toArray(), $this->lines()),
+            'lines' => array_map(static fn (FulfillmentLine $line): array => $line->toArray(), $this->lines()),
         ];
     }
 
     /** Return the time the aggregate was created. */
-    public function createdAt(): DateTimeImmutable { return $this->createdAt; }
+    public function createdAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
 
     /** Return the aggregate version used for optimistic concurrency control. */
-    public function version(): int { return $this->version; }
+    public function version(): int
+    {
+        return $this->version;
+    }
 
     /**
      * Advance the local version after a successful persisted update so that
@@ -188,5 +218,8 @@ final class Fulfillment
      *
      * @return list<FulfillmentLine>
      */
-    public function lines(): array { return array_values($this->lines); }
+    public function lines(): array
+    {
+        return array_values($this->lines);
+    }
 }
