@@ -48,11 +48,11 @@ final readonly class ArchiveService
     ): void {
         $this->authorize('archive', $type);
 
-        if (empty($type) || strlen($type) > 255) {
+        if ($type === '' || mb_strlen($type) > 255) {
             throw new InvalidArgumentException('Archive type must be between 1 and 255 characters.');
         }
 
-        if (empty($id) || strlen($id) > 255) {
+        if ($id === '' || mb_strlen($id) > 255) {
             throw new InvalidArgumentException('Archive id must be between 1 and 255 characters.');
         }
 
@@ -62,7 +62,7 @@ final readonly class ArchiveService
             );
         }
 
-        if (empty($snapshot)) {
+        if ($snapshot === []) {
             throw new InvalidArgumentException('Archive snapshot cannot be empty.');
         }
 
