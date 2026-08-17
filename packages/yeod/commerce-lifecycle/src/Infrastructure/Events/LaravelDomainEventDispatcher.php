@@ -11,8 +11,8 @@ declare(strict_types=1);
 namespace Yeod\CommerceLifecycle\Infrastructure\Events;
 
 use Illuminate\Contracts\Events\Dispatcher;
-use Yeod\CommerceLifecycle\Contracts\DomainEvent;
-use Yeod\CommerceLifecycle\Contracts\DomainEventDispatcher;
+use Yeod\CommerceLifecycle\Domain\Events\DomainEvent;
+use Yeod\CommerceLifecycle\Domain\Events\DomainEventDispatcher;
 
 final readonly class LaravelDomainEventDispatcher implements DomainEventDispatcher
 {

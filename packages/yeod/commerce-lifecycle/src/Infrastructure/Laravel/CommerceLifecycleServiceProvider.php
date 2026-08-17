@@ -10,8 +10,9 @@ use InvalidArgumentException;
 use Yeod\CommerceLifecycle\Application\Archive\ArchiveService;
 use Yeod\CommerceLifecycle\Application\Authorizer;
 use Yeod\CommerceLifecycle\Application\DenyAllAuthorizer;
-use Yeod\CommerceLifecycle\Contracts\DomainEventDispatcher;
+use Yeod\CommerceLifecycle\Application\Fulfillment\TransitionFulfillment;
 use Yeod\CommerceLifecycle\Domain\Archive\ArchiveRepository;
+use Yeod\CommerceLifecycle\Domain\Events\DomainEventDispatcher;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentRepository;
 use Yeod\CommerceLifecycle\Infrastructure\Events\LaravelDomainEventDispatcher;
 use Yeod\CommerceLifecycle\Infrastructure\Persistence\Eloquent\EloquentArchiveRepository;
@@ -26,7 +27,11 @@ final class CommerceLifecycleServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../../../config/commerce-lifecycle.php', 'commerce-lifecycle');
 
-        $this->app->bind(FulfillmentRepository::class, EloquentFulfillmentRepository::class);
+        $this->app->bind(FulfillmentRepository::class, static function (Application $app): EloquentFulfillmentRepository {
+            return new EloquentFulfillmentRepository(
+                $app->make('config')->integer('commerce-lifecycle.max_metadata_size', 65535),
+            );
+        });
         $this->app->bind(ArchiveRepository::class, EloquentArchiveRepository::class);
         $this->app->bind(DomainEventDispatcher::class, LaravelDomainEventDispatcher::class);
 
@@ -55,6 +60,14 @@ final class CommerceLifecycleServiceProvider extends ServiceProvider
                 $app->make(ArchiveRepository::class),
                 $app->make('config')->integer('commerce-lifecycle.max_snapshot_size', 512),
                 $app->make('config')->integer('commerce-lifecycle.max_reason_length', 1000),
+                $app->make(Authorizer::class),
+            );
+        });
+
+        $this->app->bind(TransitionFulfillment::class, static function (Application $app): TransitionFulfillment {
+            return new TransitionFulfillment(
+                $app->make(FulfillmentRepository::class),
+                $app->make(DomainEventDispatcher::class),
                 $app->make(Authorizer::class),
             );
         });

@@ -90,13 +90,14 @@ retention window) while keeping a snapshot for analytics and audit:
 
 ```php
 use Yeod\CommerceLifecycle\Application\Archive\ArchiveService;
+use Yeod\CommerceLifecycle\Application\Fulfillment\FulfillmentSnapshot;
 
 $archiver = app(ArchiveService::class);
 
 $archiver->archive(
     type: 'fulfillment',
     id: $fulfillment->id(),
-    snapshot: $fulfillment->toArray(),
+    snapshot: FulfillmentSnapshot::from($fulfillment),
     reason: 'retention window passed',
     archivedBy: 'scheduled-job',
 );
@@ -134,6 +135,22 @@ $this->app->bind(Authorizer::class, RbacAuthorizer::class);
 `Authorizer::can(string $action, string $resourceType)` receives the action name
 (`archive`, `restore`, `view`) and the archived record type; the `view` action is
 used for both `findSnapshot()` and `isArchived()`.
+
+## Event delivery guarantees
+
+Fulfillment transitions are persisted by the repository in its own transaction;
+once that commit succeeds, the use case (`TransitionFulfillment`) dispatches the
+emitted domain events through the `DomainEventDispatcher` port. Because dispatch
+happens *after* the commit, a process crash in between means the status change is
+stored but the event is lost — **at-most-once** delivery.
+
+This trade-off keeps the domain and the persisted aggregate independent of any
+transport. If your integration needs **at-least-once** semantics, write the events
+to an outbox (append them in the same transaction that saves the aggregate) and
+relay them from there. The `DomainEvent` contract is built for exactly that:
+`eventName()` is a stable identifier and `payload()` is a serializable
+representation for an integration bus or outbox table.
+
 
 ## Status model
 

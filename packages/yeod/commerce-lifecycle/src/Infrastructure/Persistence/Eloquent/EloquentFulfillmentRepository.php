@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\Fulfillment;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentLine;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentRepository;
+use Yeod\CommerceLifecycle\Exceptions\InvalidArgumentException;
 use Yeod\CommerceLifecycle\Exceptions\StaleAggregateException;
 
 /**
@@ -20,6 +21,8 @@ use Yeod\CommerceLifecycle\Exceptions\StaleAggregateException;
  */
 final class EloquentFulfillmentRepository implements FulfillmentRepository
 {
+    public function __construct(private int $metadataMaxBytes = 65535) {}
+
     /** Find a fulfillment aggregate by id, or null when it does not exist. */
     public function find(string $id): ?Fulfillment
     {
@@ -62,6 +65,8 @@ final class EloquentFulfillmentRepository implements FulfillmentRepository
      */
     public function save(Fulfillment $fulfillment): void
     {
+        $this->assertMetadataWithinLimit($fulfillment);
+
         $persistedVersion = DB::transaction(function () use ($fulfillment): int {
             $updated = FulfillmentModel::query()
                 ->whereKey($fulfillment->id())
@@ -96,6 +101,22 @@ final class EloquentFulfillmentRepository implements FulfillmentRepository
         // Mutate the aggregate only after a successful commit.
         while ($fulfillment->version() < $persistedVersion) {
             $fulfillment->bumpVersion();
+        }
+    }
+
+    private function assertMetadataWithinLimit(Fulfillment $fulfillment): void
+    {
+        $metadata = $fulfillment->metadata();
+        if ($metadata === []) {
+            return;
+        }
+
+        $encoded = json_encode($metadata);
+        if ($encoded === false || strlen($encoded) > $this->metadataMaxBytes) {
+            throw new InvalidArgumentException(sprintf(
+                'Fulfillment metadata exceeds the maximum size of %d bytes.',
+                $this->metadataMaxBytes,
+            ));
         }
     }
 

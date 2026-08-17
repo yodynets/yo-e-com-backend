@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yeod\CommerceLifecycle\Domain\Fulfillment;
 
 use DateTimeImmutable;
-use Yeod\CommerceLifecycle\Contracts\DomainEvent;
+use Yeod\CommerceLifecycle\Domain\Events\DomainEvent;
 
 /**
  * Domain event emitted when a fulfillment changes status.

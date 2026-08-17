@@ -6,12 +6,15 @@ namespace Yeod\CommerceLifecycle\Tests\Unit;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\Fulfillment;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentLine;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentStatus;
+use Yeod\CommerceLifecycle\Exceptions\CommerceLifecycleException;
+use Yeod\CommerceLifecycle\Exceptions\InvalidArgumentException;
 use Yeod\CommerceLifecycle\Exceptions\InvalidTransitionException;
 use Yeod\CommerceLifecycle\Exceptions\StaleAggregateException;
 use Yeod\CommerceLifecycle\Infrastructure\Persistence\Eloquent\EloquentFulfillmentRepository;
@@ -180,6 +183,34 @@ final class EloquentFulfillmentRepositoryTest extends TestCase
         }
 
         self::assertSame($versionBefore, $second->version(), 'A failed save must not bump the in-memory version.');
+    }
+
+    public function test_corrupt_stored_status_raises_package_exception(): void
+    {
+        $this->repository()->save($this->fulfillment());
+
+        // Bypass the model cast so the corrupt value actually reaches storage.
+        DB::table('commerce_fulfillments')->where('id', 'ful-1')->update(['status' => 'not_a_real_status']);
+
+        try {
+            $this->repository()->find('ful-1');
+            self::fail('Expected CommerceLifecycleException was not thrown.');
+        } catch (CommerceLifecycleException $e) {
+            self::assertInstanceOf(InvalidArgumentException::class, $e);
+        }
+    }
+
+    public function test_oversized_metadata_is_rejected_on_save(): void
+    {
+        $fulfillment = Fulfillment::create(
+            'ful-1',
+            'ord-1',
+            [new FulfillmentLine('l1', 'sku-1', 1)],
+            metadata: ['blob' => str_repeat('x', 65536)],
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->repository()->save($fulfillment);
     }
 
     protected function setUp(): void

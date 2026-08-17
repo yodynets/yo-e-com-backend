@@ -2,8 +2,26 @@
   "name": "yeod/commerce-lifecycle",
   "description": "DDD/Onion domain module for order, payment, fulfillment, shipment, returns, catalog availability and archival lifecycles.",
   "type": "library",
-  "version": "0.0.0",
+  "keywords": [
+    "laravel",
+    "ddd",
+    "onion-architecture",
+    "domain",
+    "lifecycle",
+    "status-machine",
+    "fulfillment",
+    "archive"
+  ],
   "license": "MIT",
+  "authors": [
+    {
+      "name": "Yevhen Odynets"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/yeod/commerce-lifecycle/issues",
+    "source": "https://github.com/yeod/commerce-lifecycle"
+  },
   "require": {
     "php": "^8.3",
     "illuminate/contracts": "^12.0|^13.0",
@@ -14,7 +32,7 @@
     "ext-pdo_sqlite": "*",
     "laravel/pint": "^1.0",
     "larastan/larastan": "^3.0",
-    "orchestra/testbench": "^11.0",
+    "orchestra/testbench": "^10.0|^11.0",
     "phparkitect/phparkitect": "^1.3",
     "phpstan/phpstan-strict-rules": "^2.0",
     "phpunit/phpunit": "^12.0"
@@ -42,6 +60,12 @@
     "format": "pint",
     "format:check": "pint --test",
     "test": "phpunit --configuration phpunit.xml.dist"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "phpstan/extension-installer": true
+    }
   },
   "minimum-stability": "stable",
   "prefer-stable": true

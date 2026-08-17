@@ -191,7 +191,8 @@ $fulfillment->metadata();        // ['source' => 'web']
 $fulfillment->createdAt();       // DateTimeImmutable
 $fulfillment->version();         // optimistic-concurrency version
 $fulfillment->lines();           // list<FulfillmentLine>
-$fulfillment->toArray();         // serializable array
+// Serialization to a transport array lives outside the domain:
+FulfillmentSnapshot::from($fulfillment); // serializable array (see Archiving)
 ```
 
 ### Optimistic concurrency
@@ -305,6 +306,7 @@ $useCase->execute('ful_01J', FulfillmentStatus::Fulfilled);
 
 ```php
 use Yeod\CommerceLifecycle\Application\Archive\ArchiveService;
+use Yeod\CommerceLifecycle\Application\Fulfillment\FulfillmentSnapshot;
 
 $archiver = app(ArchiveService::class);
 
@@ -312,7 +314,7 @@ $archiver = app(ArchiveService::class);
 $archiver->archive(
     type: 'fulfillment',
     id: 'ful_01J',
-    snapshot: $fulfillment->toArray(),
+    snapshot: FulfillmentSnapshot::from($fulfillment),
     reason: 'retention window passed',
     archivedBy: 'scheduled-job',
     storageLocation: 'analytics-db',  // marker of the external store (a DB name, a JSON list, ...)
@@ -359,7 +361,7 @@ $repository->isArchived('order', 'ord-01');   // bool
 ## Domain events
 
 ```php
-use Yeod\CommerceLifecycle\Contracts\DomainEvent;
+use Yeod\CommerceLifecycle\Domain\Events\DomainEvent;
 
 // Implement this interface for other domain events
 interface DomainEvent

@@ -16,18 +16,45 @@ the migration and this document ever disagree, the migration wins.
 
 ## Overview (entity–relationship)
 
+```mermaid
+erDiagram
+    orders {
+        string id PK "host-owned, not installed by this package"
+    }
+
+    commerce_fulfillments ||--o{ commerce_fulfillment_lines : "has lines (FK fulfillment_id, cascadeOnDelete)"
+    commerce_fulfillments }o--o| orders : "order_id references host order (no FK)"
+
+    commerce_fulfillments {
+        string id PK "host-chosen id, not auto-increment"
+        string order_id "host's order id, no FK"
+        string status "FulfillmentStatus value"
+        json metadata "nullable"
+        int version "optimistic concurrency, default 1"
+        timestamp created_at
+        timestamp updated_at
+    }
+    commerce_fulfillment_lines {
+        string fulfillment_id PK, FK "composite PK with id; references commerce_fulfillments.id"
+        string id PK "line id, unique within an aggregate"
+        string sku "host's product SKU, indexed"
+        int ordered_quantity
+        int fulfilled_quantity "default 0"
+    }
+    commerce_archives {
+        bigint id PK
+        string archivable_type "indexed"
+        string archivable_id "indexed"
+        int snapshot_version "append-only version"
+        string reason "nullable"
+        string archived_by "nullable"
+        string storage_location "nullable"
+        json snapshot "FulfillmentSnapshot::from()"
+        timestamp archived_at
+        timestamp restored_at "nullable"
+    }
 ```
-      commerce_fulfillments                    commerce_archives
-   ┌──────────────────────────┐              ┌──────────────────────────┐
-   │ id            string  PK │  ◄──┐        │ id             bigint PK │
-   │ order_id      string     │     │lines   │ archivable_type string   │
-   │ status        string     │     │(FK)    │ archivable_id   string   │
-   │ metadata      json     ↳ │     │        │ reason          string?  │
-   │ version       int      ↳ │     │        │ archived_by     string?  │
-   │ created_at    timestamp  │     │        │ storage_location string? │
-   │ updated_at    timestamp  │     │        │ snapshot        json     │
-   └──────────────────────────┘     │        │ archived_at     timestamp│
-        │            ▲              │        │ restored_at     timestamp?
+
         │ order_id   │              │        └──────────────────────────┘
         │ (host id,  │    ┌─────────┴─────────────┐        │
         │  no FK)    │    │ commerce_fulfillment_lines      │ unique(archivable_type,
@@ -41,11 +68,13 @@ the migration and this document ever disagree, the migration wins.
 ```
 
 - `commerce_fulfillments` **1 – N** `commerce_fulfillment_lines`
-  (`fulfillment_id` FK, `cascadeOnDelete`).
+  (`fulfillment_id` FK, `cascadeOnDelete`; the line PK is composite
+  `(fulfillment_id, id)` because line ids are unique only within an aggregate).
 - `commerce_fulfillments.order_id` is **not** an FK — it points to a row in the
   host's `orders` table that the package does not own.
 - `commerce_archives` is a standalone audit store with a unique
-  `(archivable_type, archivable_id)` per record.
+  `(archivable_type, archivable_id, snapshot_version)` — every `archive()` call
+  appends a new versioned snapshot instead of overwriting the previous one.
 
 ---
 
@@ -94,7 +123,7 @@ It **never deletes** the source record.
 | `reason` | `string` | yes | — | Why it was archived. |
 | `archived_by` | `string` | yes | — | Who/what archived it (e.g. `scheduled-job`). |
 | `storage_location` | `string` | yes | — | Marker where the snapshot is physically kept (e.g. analytics DB). Not interpreted by the package. |
-| `snapshot` | `json` | no | — | Deep JSON snapshot (`toArray()` of the aggregate). |
+| `snapshot` | `json` | no | — | Deep JSON snapshot (`FulfillmentSnapshot::from()` of the aggregate). |
 | `archived_at` | `timestamp` | no | — | When it was archived. |
 | `restored_at` | `timestamp` | yes | — | Set when `restore()` is called; `NULL` while active. |
 
@@ -175,12 +204,15 @@ lazy-loading surprises, no N+1. This is why the `fulfillment_id` FK is indexed.
 - The package stores a **deep JSON snapshot** because the operational rows may be
   truncated or the schema of the source record may evolve; the snapshot preserves
   the exact state at archive time for analytics/audit.
-- `(archivable_type, archivable_id)` is **unique** because the archive keeps the
-  *latest* snapshot per record (`updateOrCreate`), not a full history — history is
-  the host's responsibility if it needs it.
-- `restored_at` is nullable; `archive()` clears it, `restore()` sets it. Only
-  `NULL` rows count as **active** in `isArchived()`. The row itself is retained so
-  the audit trail survives even after restore.
+- `(archivable_type, archivable_id, snapshot_version)` is **unique**: every
+  `archive()` call appends a new versioned snapshot (append-only history) instead
+  of overwriting the previous one. `findSnapshot()` reads the latest version
+  (`whereNull('restored_at')`, ordered by `snapshot_version` descending); `restore()`
+  marks that latest row as restored.
+- `restored_at` is nullable; a freshly appended snapshot row starts with `NULL`,
+  and `restore()` sets it only on the latest row. Only `NULL` rows count as
+  **active** in `isArchived()`. Rows are retained so the audit trail survives even
+  after restore.
 - **No purge operation** ships deliberately: delete is destructive and should be an
   explicit, retention-policy-driven job owned by the host.
 
@@ -189,7 +221,7 @@ lazy-loading surprises, no N+1. This is why the `fulfillment_id` FK is indexed.
 Both are flexible holder-for-whatever-the-host-needs fields:
 
 - `metadata` on a fulfillment stores non-domain annotations (e.g. carrier note).
-- `snapshot` on an archive stores the aggregate's `toArray()`.
+- `snapshot` on an archive stores the aggregate's `FulfillmentSnapshot::from()`.
 
 JSON keeps the package schema stable while the host-specific shape changes. It is
 validated for serializability and size at the application boundary
@@ -207,12 +239,12 @@ audit store.
 
 | Invariant | Where enforced |
 |---|---|
-| `ordered_quantity ≥ 1`, `0 ≤ fulfilled ≤ ordered` | `FulfillmentLine` (domain) |
+| `ordered_quantity ≥ 1`, `0 ≤ fulfilled ≤ ordered` | `FulfillmentLine` (domain) + DB CHECK on `commerce_fulfillment_lines` (mysql/mariadb/pgsql/sqlsrv) |
 | line ids unique within an aggregate | `Fulfillment` constructor (domain) |
 | status transitions legal | `FulfillmentStatus::canTransitionTo()` (domain) |
 | concurrent writes do not silently clobber | `version` guard in repository |
 | no orphan lines | FK `cascadeOnDelete` (DB) |
-| exactly one *latest* archive snapshot per record | unique `(archivable_type, archivable_id)` (DB) |
+| versioned archive history; latest snapshot per record wins | unique `(archivable_type, archivable_id, snapshot_version)` (DB) |
 | source record is never deleted by archiving | `ArchiveService` never issues a DELETE on the source |
 
 ---

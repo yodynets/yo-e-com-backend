@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentStatus;
+use Yeod\CommerceLifecycle\Infrastructure\Persistence\Eloquent\Casts\FulfillmentStatusCast;
 
 /**
  * Persistence model only. Do not place domain transition rules here.
@@ -53,7 +54,7 @@ final class FulfillmentModel extends Model
     protected function casts(): array
     {
         return [
-            'status' => FulfillmentStatus::class,
+            'status' => FulfillmentStatusCast::class,
             'metadata' => 'array',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',

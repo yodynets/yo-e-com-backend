@@ -35,3 +35,5 @@ storage/debugbar
 /packages/yeod/commerce-lifecycle/vendor/
 /packages/yeod/AUDIT.md
 /packages/yeod/commerce-lifecycle/FIX_VERIFICATION.md
+/standard.md
+/.ai/rules/

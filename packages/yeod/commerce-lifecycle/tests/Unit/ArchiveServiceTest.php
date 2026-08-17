@@ -6,6 +6,7 @@ namespace Yeod\CommerceLifecycle\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Yeod\CommerceLifecycle\Application\Archive\ArchiveService;
+use Yeod\CommerceLifecycle\Exceptions\InvalidArgumentException;
 use Yeod\CommerceLifecycle\Tests\Doubles\FakeArchiveRepository;
 
 /**
@@ -69,5 +70,25 @@ final class ArchiveServiceTest extends TestCase
 
         self::assertTrue($service->isArchived('order', 'ord-1'));
         self::assertFalse($service->isArchived('order', 'ord-2'));
+    }
+
+    public function test_reason_length_is_measured_in_characters_not_bytes(): void
+    {
+        $repository = new FakeArchiveRepository;
+        $service = new ArchiveService($repository, maxReasonLength: 3);
+
+        // 'ї' is 2 bytes in UTF-8 but 1 character: 4 characters exceed the limit of 3.
+        $this->expectException(InvalidArgumentException::class);
+        $service->archive('order', 'ord-1', ['total' => 1], reason: 'їїїї');
+    }
+
+    public function test_reason_at_the_limit_in_characters_is_allowed(): void
+    {
+        $repository = new FakeArchiveRepository;
+        $service = new ArchiveService($repository, maxReasonLength: 3);
+
+        $service->archive('order', 'ord-1', ['total' => 1], reason: 'їїї');
+
+        self::assertCount(1, $repository->archived);
     }
 }

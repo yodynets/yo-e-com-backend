@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yeod\CommerceLifecycle\Domain\Fulfillment;
 
 use DateTimeImmutable;
-use Yeod\CommerceLifecycle\Contracts\DomainEvent;
+use Yeod\CommerceLifecycle\Domain\Events\DomainEvent;
 use Yeod\CommerceLifecycle\Exceptions\InvalidArgumentException;
 use Yeod\CommerceLifecycle\Exceptions\InvalidTransitionException;
 
@@ -37,6 +37,7 @@ final class Fulfillment
         if ($id === '' || $orderId === '' || $lines === []) {
             throw new InvalidArgumentException('A fulfillment requires ids and at least one line.');
         }
+
         $this->lines = [];
         foreach ($lines as $line) {
             if (isset($this->lines[$line->id()])) {
@@ -175,21 +176,6 @@ final class Fulfillment
         $this->domainEvents = [];
 
         return $events;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'order_id' => $this->orderId,
-            'status' => $this->status->value,
-            'metadata' => $this->metadata,
-            'created_at' => $this->createdAt()->format(DATE_ATOM),
-            'lines' => array_map(static fn (FulfillmentLine $line): array => $line->toArray(), $this->lines()),
-        ];
     }
 
     /** Return the time the aggregate was created. */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -31,6 +32,19 @@ return new class extends Migration
             $table->primary(['fulfillment_id', 'id']);
             $table->foreign('fulfillment_id')->references('id')->on('commerce_fulfillments')->cascadeOnDelete();
         });
+
+        // DB-level guard that fulfilled_quantity never exceeds ordered_quantity.
+        // Laravel's schema builder has no cross-driver CHECK support, so it is
+        // added per-driver; SQLite cannot ALTER-add a CHECK (only at CREATE time)
+        // and already relies on the domain invariant enforced by FulfillmentLine.
+        $driver = DB::connection()->getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb', 'pgsql', 'sqlsrv'], true)) {
+            DB::statement(
+                'ALTER TABLE commerce_fulfillment_lines'
+                .' ADD CONSTRAINT commerce_fulfillment_lines_fulfilled_le_ordered'
+                .' CHECK (fulfilled_quantity <= ordered_quantity)'
+            );
+        }
 
         Schema::create('commerce_archives', static function (Blueprint $table): void {
             $table->id();

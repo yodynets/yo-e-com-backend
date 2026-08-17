@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Application\Archive;
 
-use InvalidArgumentException;
 use JsonException;
 use Yeod\CommerceLifecycle\Application\Authorizer;
 use Yeod\CommerceLifecycle\Domain\Archive\ArchiveRepository;
+use Yeod\CommerceLifecycle\Exceptions\InvalidArgumentException;
 use Yeod\CommerceLifecycle\Exceptions\NotAuthorizedException;
 
 /**
@@ -56,7 +56,7 @@ final readonly class ArchiveService
             throw new InvalidArgumentException('Archive id must be between 1 and 255 characters.');
         }
 
-        if ($reason !== null && strlen($reason) > $this->maxReasonLength) {
+        if ($reason !== null && mb_strlen($reason) > $this->maxReasonLength) {
             throw new InvalidArgumentException(
                 sprintf('Archive reason exceeds the maximum length of %d characters.', $this->maxReasonLength)
             );

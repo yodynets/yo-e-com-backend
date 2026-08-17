@@ -28,8 +28,9 @@ application. Typical triggers:
 - Retention windows (fulfilled orders older than N years).
 - Operational hygiene (removing noise from the active read model).
 
-To use it, resolve `ArchiveService` from the container and pass the aggregate's
-`toArray()` snapshot plus a reason, exactly as shown in the README example.
+To use it, resolve `ArchiveService` from the container and pass the
+`FulfillmentSnapshot::from($fulfillment)` snapshot plus a reason, exactly as
+shown in the README example.
 
 ## Extension points
 

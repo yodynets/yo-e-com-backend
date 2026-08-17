@@ -54,4 +54,16 @@ final class FulfillmentTest extends TestCase
         self::assertSame(FulfillmentStatus::Unfulfilled, $fulfillment->status(), 'Status must not change.');
         self::assertSame(0, $fulfillment->lines()[0]->fulfilledQuantity(), 'Line quantity must not change.');
     }
+
+    public function test_metadata_is_stored_and_returned(): void
+    {
+        $fulfillment = Fulfillment::create(
+            'ful-1',
+            'ord-1',
+            [new FulfillmentLine('line-1', 'sku-1', 1)],
+            metadata: ['channel' => 'web', 'tags' => ['a', 'b']],
+        );
+
+        self::assertSame(['channel' => 'web', 'tags' => ['a', 'b']], $fulfillment->metadata());
+    }
 }
