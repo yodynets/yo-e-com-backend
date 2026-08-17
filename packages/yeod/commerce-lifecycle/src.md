@@ -147,34 +147,23 @@ tests from the host root with
 `vendor/bin/phpunit --bootstrap vendor/autoload.php packages/yeod/commerce-lifecycle/tests/Unit`
 (requires pdo_sqlite), or standalone after extraction with `composer test`.
 
-## FIX_VERIFICATION state (remaining work)
+## FIX_VERIFICATION state
 
-- **Stage 0–2 (D1–D5, B1–B5, H1–H9):** done, gates passed.
-- **Stage 3 (M1–M9):** implemented; **gates passed 2026-08 run (test/analyse/arch
-  all green)**. Pending manual cleanup: delete `src/Contracts/` (2 orphan files).
-- **Stage 4 (L + M10–M13):**
-  - L1 (`@package fila`) — already removed in source (2 files).
-  - L2 (self-namespace import in Fulfillment.php) — already removed.
-  - L3 (justification comments in EloquentArchiveRepository) — already removed.
-  - L6 (phpstan: tests in paths, parallel, baseline) — done.
-  - **L4** — LICENSE: `Copyright (c) 2026 Yeod yt` → real name `Yevhen Odynets`.
-  - **L5** — composer.json description must be honest:
-    «Status transition graphs for commerce lifecycles plus a guarded Fulfillment
-    aggregate and deep-archive mechanism for Laravel.»
-  - **M10** — `.github/workflows/tests.yml`: composer order, constrain the 3
-    illuminate packages, `fail-fast: false`, `prefer-lowest`, cache.
-  - **M11** — README: remove «Laravel 13» from title/text, move host-path notes
-    to CONTRIBUTING, add Locad reference + URL.
-  - **M12** — `phpunit.xml.dist`: `failOnWarning`/`failOnRisky`/
-    `failOnDeprecation` + `<source>`; test isolation (`tearDownAfterClass`, no
-    global facade); Application tests.
-  - **M13** — create `CHANGELOG.md`, `SECURITY.md`, `CONTRIBUTING.md`,
-    `.editorconfig`, issue templates.
-- **Stage 5 (standards):** done (Pint, PHPStan max, PHPArkitect, baseline,
-  composer scripts). `spaze/phpstan-disallowed-calls` deferred (incompat with
-  phpstan 2.2.8 — see docs/standards.md).
-- **Stage 6 (release):** not started. Plan: `0.9.0` with «API may change before
-  1.0» (after Stage 4), then `1.0` only after M1/M2/M7/M9 BC-breaks are stable.
+- [x] **Stage 0–2 (D1–D5, B1–B5, H1–H9)** — done, gates passed.
+- [x] **Stage 3 (M1–M9)** — gates passed 2026-08 run (test 116 · analyse 0 · arch 0 · format PASS); `src/Contracts/` (2 orphan files) deleted.
+- [x] **Stage 4 (L + M10–M13)** — all items done:
+  - [x] L1 (`@package fila`) removed in source
+  - [x] L2 (self-namespace import in Fulfillment.php) removed
+  - [x] L3 (justification comments in EloquentArchiveRepository) removed
+  - [x] L4 — LICENSE: `Copyright (c) 2026 Yevhen Odynets`
+  - [x] L5 — composer.json description honest
+  - [x] L6 — phpstan: tests in paths, parallel, baseline
+  - [x] M10 — CI `tests.yml`: composer order, 3 illuminate constrained, `fail-fast: false`, `prefer-lowest`, cache
+  - [x] M11 — README: «Laravel 13» removed, host-path notes → CONTRIBUTING, Locad URL
+  - [x] M12 — `phpunit.xml.dist` failOn* + `<source>`; test isolation (`tearDownAfterClass`); data-provider for isolation tests; Application tests (ArchiveService validation, NotAuthorizedException, unknown-id transition, fulfilled>ordered)
+  - [x] M13 — `CHANGELOG.md`, `SECURITY.md`, `CONTRIBUTING.md`, `.editorconfig`, issue templates
+- [x] **Stage 5 (standards)** — done (Pint, PHPStan max, PHPArkitect, baseline, composer scripts). `spaze/phpstan-disallowed-calls` deferred (incompat with phpstan 2.2.8 — see docs/standards.md).
+- [ ] **Stage 6 (release)** — not started. Plan: `0.9.0` with «API may change before 1.0» (after Stage 4), then `1.0` only after M1/M2/M7/M9 BC-breaks are stable.
 
 ## Commit conventions
 
