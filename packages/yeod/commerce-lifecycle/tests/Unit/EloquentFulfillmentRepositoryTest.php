@@ -213,6 +213,14 @@ final class EloquentFulfillmentRepositoryTest extends TestCase
         $this->repository()->save($fulfillment);
     }
 
+    protected function tearDown(): void
+    {
+        FulfillmentLineModel::query()->delete();
+        FulfillmentModel::query()->delete();
+
+        parent::tearDown();
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -224,6 +232,20 @@ final class EloquentFulfillmentRepositoryTest extends TestCase
 
         FulfillmentLineModel::query()->delete();
         FulfillmentModel::query()->delete();
+    }
+
+    /**
+     * Reset the global facade application after all tests so the shared Capsule
+     * container does not leak into other test classes in the same process.
+     */
+    public static function tearDownAfterClass(): void
+    {
+        Facade::clearResolvedInstances();
+        Facade::setFacadeApplication(null);
+
+        self::$repository = null;
+
+        parent::tearDownAfterClass();
     }
 
     private static function bootDatabase(): void

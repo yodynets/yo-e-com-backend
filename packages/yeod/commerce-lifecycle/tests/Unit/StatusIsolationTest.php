@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Tests\Unit;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Yeod\CommerceLifecycle\Domain\Catalog\ProductAvailabilityStatus;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\Fulfillment;
@@ -29,53 +30,44 @@ final class StatusIsolationTest extends TestCase
     /**
      * Each status axis must reject a foreign-status argument with a TypeError.
      * This proves the enums are isolated at the language level, not by convention.
+     *
+     * @param  callable(mixed): bool  $probe
      */
-    public function test_fulfillment_status_rejects_payment_status(): void
+    #[DataProvider('statusIsolationProvider')]
+    public function test_status_isolation(callable $probe, mixed $foreignTarget): void
     {
-        $this->expectForeignTypeError(
+        $this->expectForeignTypeError($probe, $foreignTarget);
+    }
+
+    /**
+     * @return iterable<string, array{callable(mixed): bool, mixed}>
+     */
+    public static function statusIsolationProvider(): iterable
+    {
+        yield 'fulfillment rejects payment' => [
             static fn (mixed $target): bool => FulfillmentStatus::Unfulfilled->canTransitionTo($target),
             PaymentStatus::Captured,
-        );
-    }
-
-    public function test_order_status_rejects_shipment_status(): void
-    {
-        $this->expectForeignTypeError(
+        ];
+        yield 'order rejects shipment' => [
             static fn (mixed $target): bool => OrderStatus::AwaitingPayment->canTransitionTo($target),
             ShipmentStatus::Delivered,
-        );
-    }
-
-    public function test_payment_status_rejects_return_status(): void
-    {
-        $this->expectForeignTypeError(
+        ];
+        yield 'payment rejects return' => [
             static fn (mixed $target): bool => PaymentStatus::Captured->canTransitionTo($target),
             ReturnStatus::Refunded,
-        );
-    }
-
-    public function test_shipment_status_rejects_catalog_status(): void
-    {
-        $this->expectForeignTypeError(
+        ];
+        yield 'shipment rejects catalog' => [
             static fn (mixed $target): bool => ShipmentStatus::InTransit->canTransitionTo($target),
             ProductAvailabilityStatus::Available,
-        );
-    }
-
-    public function test_return_status_rejects_order_status(): void
-    {
-        $this->expectForeignTypeError(
+        ];
+        yield 'return rejects order' => [
             static fn (mixed $target): bool => ReturnStatus::Inspecting->canTransitionTo($target),
             OrderStatus::Completed,
-        );
-    }
-
-    public function test_catalog_status_rejects_fulfillment_status(): void
-    {
-        $this->expectForeignTypeError(
+        ];
+        yield 'catalog rejects fulfillment' => [
             static fn (mixed $target): bool => ProductAvailabilityStatus::Available->canTransitionTo($target),
             FulfillmentStatus::Fulfilled,
-        );
+        ];
     }
 
     /**

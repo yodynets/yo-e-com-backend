@@ -12,6 +12,7 @@ use Yeod\CommerceLifecycle\Domain\Fulfillment\Fulfillment;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentLine;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentStatus;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentStatusChanged;
+use Yeod\CommerceLifecycle\Exceptions\InvalidArgumentException;
 use Yeod\CommerceLifecycle\Exceptions\NotAuthorizedException;
 use Yeod\CommerceLifecycle\Tests\Doubles\FakeEventDispatcher;
 use Yeod\CommerceLifecycle\Tests\Doubles\FakeFulfillmentRepository;
@@ -82,5 +83,15 @@ final class TransitionFulfillmentTest extends TestCase
         self::assertSame(FulfillmentStatus::OnHold, $fulfillment->status());
         self::assertCount(1, $events->dispatched);
         self::assertSame(FulfillmentStatusChanged::class, $events->dispatched[0]::class);
+    }
+
+    public function test_transition_of_unknown_fulfillment_throws_invalid_argument(): void
+    {
+        $repository = new FakeFulfillmentRepository(null);
+        $useCase = new TransitionFulfillment($repository, new FakeEventDispatcher, new AllowAllAuthorizer);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $useCase->execute('missing', FulfillmentStatus::OnHold);
     }
 }

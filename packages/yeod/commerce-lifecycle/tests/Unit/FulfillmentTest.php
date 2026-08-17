@@ -66,4 +66,11 @@ final class FulfillmentTest extends TestCase
 
         self::assertSame(['channel' => 'web', 'tags' => ['a', 'b']], $fulfillment->metadata());
     }
+
+    public function test_line_with_fulfilled_quantity_above_ordered_is_rejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new FulfillmentLine('line-1', 'sku-1', orderedQuantity: 1, fulfilledQuantity: 2);
+    }
 }

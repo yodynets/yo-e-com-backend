@@ -6,7 +6,9 @@ namespace Yeod\CommerceLifecycle\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Yeod\CommerceLifecycle\Application\Archive\ArchiveService;
+use Yeod\CommerceLifecycle\Application\DenyAllAuthorizer;
 use Yeod\CommerceLifecycle\Exceptions\InvalidArgumentException;
+use Yeod\CommerceLifecycle\Exceptions\NotAuthorizedException;
 use Yeod\CommerceLifecycle\Tests\Doubles\FakeArchiveRepository;
 
 /**
@@ -90,5 +92,59 @@ final class ArchiveServiceTest extends TestCase
         $service->archive('order', 'ord-1', ['total' => 1], reason: 'їїї');
 
         self::assertCount(1, $repository->archived);
+    }
+
+    public function test_archive_rejects_empty_type(): void
+    {
+        $service = new ArchiveService(new FakeArchiveRepository);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $service->archive('', 'ord-1', ['total' => 1]);
+    }
+
+    public function test_archive_rejects_empty_id(): void
+    {
+        $service = new ArchiveService(new FakeArchiveRepository);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $service->archive('order', '', ['total' => 1]);
+    }
+
+    public function test_archive_rejects_empty_snapshot(): void
+    {
+        $repository = new FakeArchiveRepository;
+        $service = new ArchiveService($repository);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $service->archive('order', 'ord-1', []);
+    }
+
+    public function test_archive_rejects_oversized_snapshot(): void
+    {
+        $repository = new FakeArchiveRepository;
+        $service = new ArchiveService($repository, maxSnapshotSizeInKb: 1);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $service->archive('order', 'ord-1', ['blob' => str_repeat('x', 2048)]);
+    }
+
+    public function test_operations_are_denied_by_the_fail_closed_authorizer(): void
+    {
+        $service = new ArchiveService(new FakeArchiveRepository, authorizer: new DenyAllAuthorizer);
+
+        self::expectException(NotAuthorizedException::class);
+        $service->archive('order', 'ord-1', ['total' => 1]);
+    }
+
+    public function test_restore_is_denied_by_the_fail_closed_authorizer(): void
+    {
+        $service = new ArchiveService(new FakeArchiveRepository, authorizer: new DenyAllAuthorizer);
+
+        $this->expectException(NotAuthorizedException::class);
+        $service->restore('order', 'ord-1');
     }
 }
