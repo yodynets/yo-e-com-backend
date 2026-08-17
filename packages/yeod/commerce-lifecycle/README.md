@@ -1,10 +1,12 @@
-# Commerce Lifecycle for Laravel 13
+# Commerce Lifecycle
 
 A framework-light DDD/Onion module for modeling the lifecycle of commerce records without collapsing order, payment, fulfillment, shipment, return, catalog availability, and archival into one overloaded status field.
 
 ## Design decision
 
-This package follows the useful distinction described by Locad:
+This package follows the useful distinction described by Locad's
+[*"Fulfillment Status in E-commerce"*](https://www.golocad.com/fulfillment/fulfillment-status/)
+article:
 
 - **Order status** describes the commercial order and the next customer or operator action.
 - **Payment status** describes money movement.
@@ -165,25 +167,12 @@ composer arch            # PHPArkitect Onion / DDD layer rules
 composer format          # Pint (fix); use format:check for a dry run
 ```
 
-PHP 8.3+ and Laravel 13 are supported. The core domain has no dependency on
-controllers, requests, facades, or Eloquent. See [docs/standards.md](docs/standards.md)
-for the full list of adopted standards and how each is enforced.
+PHP 8.3+ and Laravel 12/13 (`illuminate/* ^12.0|^13.0`) are supported. The core
+domain has no dependency on controllers, requests, facades, or Eloquent. See
+[docs/standards.md](docs/standards.md) for the full list of adopted standards
+and how each is enforced.
 
-### Running tests inside the host application (current setup)
-
-The package is developed as a path-repository dependency, so it reuses the host
-application's test runner. From the host project root:
-
-```bash
-vendor/bin/phpunit --bootstrap vendor/autoload.php packages/yeod/commerce-lifecycle/tests/Unit
-```
-
-> Requires `pdo_sqlite` — if it is not enabled in `php.ini`, prepend
-> `php -d extension=pdo_sqlite` to the command.
-
-### Running tests standalone (after extraction to GitHub)
-
-Once the package is extracted into its own repository, install its dependencies and run:
+### Running tests
 
 ```bash
 composer install
@@ -192,4 +181,6 @@ composer test
 
 The package declares `ext-pdo_sqlite` in its `require-dev`, so `composer install`
 validates that the SQLite PDO driver is available. If your PHP lacks it, enable it
-(e.g. `php -d extension=pdo_sqlite`) before installing dev dependencies.
+(e.g. `php -d extension=pdo_sqlite`) before installing dev dependencies. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the full quality gates and how to run them,
+including running the package as a path-repository dependency of a host app.
