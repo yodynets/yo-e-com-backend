@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Application\Archive;
 
@@ -46,9 +46,7 @@ final readonly class ArchiveService
         ?string $archivedBy = null,
         ?string $storageLocation = null,
     ): void {
-        if ($this->authorizer !== null && ! $this->authorizer->can('archive', $type)) {
-            throw new NotAuthorizedException(sprintf('Not authorized to archive %s records.', $type));
-        }
+        $this->authorize('archive', $type);
 
         if (empty($type) || strlen($type) > 255) {
             throw new InvalidArgumentException('Archive type must be between 1 and 255 characters.');
@@ -89,6 +87,7 @@ final readonly class ArchiveService
      */
     public function restore(string $type, string $id): void
     {
+        $this->authorize('restore', $type);
         $this->repository->restore($type, $id);
     }
 
@@ -99,6 +98,8 @@ final readonly class ArchiveService
      */
     public function findSnapshot(string $type, string $id): ?array
     {
+        $this->authorize('view', $type);
+
         return $this->repository->findSnapshot($type, $id);
     }
 
@@ -107,6 +108,24 @@ final readonly class ArchiveService
      */
     public function isArchived(string $type, string $id): bool
     {
+        $this->authorize('view', $type);
+
         return $this->repository->isArchived($type, $id);
+    }
+
+    /**
+     * Guard an operation through the configured authorizer port.
+     *
+     * A null authorizer (framework-free mode) is treated as "no policy", so the
+     * check is skipped; when a concrete authorizer is bound it must grant the
+     * action explicitly (fail-closed default is {@see DenyAllAuthorizer}).
+     */
+    private function authorize(string $action, string $type): void
+    {
+        if ($this->authorizer !== null && ! $this->authorizer->can($action, $type)) {
+            throw new NotAuthorizedException(
+                sprintf('Not authorized to %s %s records.', $action, $type)
+            );
+        }
     }
 }

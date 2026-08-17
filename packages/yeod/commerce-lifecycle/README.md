@@ -106,6 +106,33 @@ $archiver->restore(type: 'fulfillment', id: $fulfillment->id());
 `ArchiveService::archive()` stores the snapshot and metadata, it never deletes the
 source record; hiding it from operational queries is the host application's job.
 
+## Security
+
+> ⚠️ **Fail-closed by default.** If you have not configured an authorizer, every
+> `ArchiveService` operation is **denied**. This is deliberate: an operator who
+> skips the authorization setup must not silently end up with a wide-open archive
+> endpoint. Grant access explicitly by binding an `Authorizer` implementation.
+
+`ArchiveService` guards `archive`, `restore`, `findSnapshot`, and `isArchived`
+through the `Authorizer` port (`Yeod\CommerceLifecycle\Application\Authorizer`).
+The package ships a fail-closed `DenyAllAuthorizer` (the default) and an
+explicit `AllowAllAuthorizer` for local development only.
+
+To require real authorization, bind your own port in the container — for example
+in a service provider or via the `authorizer` config value:
+
+```php
+// app/Providers/AppServiceProvider.php
+use Yeod\CommerceLifecycle\Application\Authorizer;
+use App\Support\RbacAuthorizer;
+
+$this->app->bind(Authorizer::class, RbacAuthorizer::class);
+```
+
+`Authorizer::can(string $action, string $resourceType)` receives the action name
+(`archive`, `restore`, `view`) and the archived record type; the `view` action is
+used for both `findSnapshot()` and `isArchived()`.
+
 ## Status model
 
 The package includes explicit transition graphs for `OrderStatus`, `PaymentStatus`, `FulfillmentStatus`, `ShipmentStatus`, `ReturnStatus`, and `ProductAvailabilityStatus`. These are intentionally separate types even when values such as `pending`, `cancelled`, or `completed` look similar.
