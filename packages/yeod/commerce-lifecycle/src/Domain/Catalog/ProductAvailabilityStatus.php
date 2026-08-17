@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Domain\Catalog;
 
@@ -8,18 +8,13 @@ use Yeod\CommerceLifecycle\Domain\Shared\TransitionableStatus;
 
 enum ProductAvailabilityStatus: string implements TransitionableStatus
 {
-    case Draft                  = 'draft';
-    case Scheduled              = 'scheduled';
-    case Available              = 'available';
+    case Draft = 'draft';
+    case Scheduled = 'scheduled';
+    case Available = 'available';
     case TemporarilyUnavailable = 'temporarily_unavailable';
-    case Discontinued           = 'discontinued';
-    case Archived               = 'archived';
+    case Discontinued = 'discontinued';
+    case Archived = 'archived';
 
-    /**
-     * @param  ProductAvailabilityStatus  $target
-     *
-     * @return bool
-     */
     public function canTransitionTo(self $target): bool
     {
         return match ($this) {
@@ -40,10 +35,16 @@ enum ProductAvailabilityStatus: string implements TransitionableStatus
         };
     }
 
-    /** Determine whether the status is terminal and cannot transition further. */
+    /**
+     * Determine whether the status is terminal and cannot transition further.
+     *
+     * No product availability status is truly terminal: `Discontinued` can still
+     * transition to `Archived`, and `Archived` back to `Draft`. So this always
+     * returns false, matching the graph.
+     */
     public function isFinal(): bool
     {
-        return $this === self::Discontinued;
+        return false;
     }
 
     /** Determine whether the product may be sold right now. */

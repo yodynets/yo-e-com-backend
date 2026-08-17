@@ -193,7 +193,26 @@ final class StatusGraphTest extends TestCase
         self::assertTrue(ReturnStatus::Closed->isFinal());
         self::assertFalse(ReturnStatus::Requested->isFinal());
 
-        self::assertTrue(ProductAvailabilityStatus::Discontinued->isFinal());
+        self::assertFalse(ProductAvailabilityStatus::Discontinued->isFinal());
         self::assertFalse(ProductAvailabilityStatus::Available->isFinal());
+    }
+
+    public function test_is_final_implies_no_outgoing_transitions(): void
+    {
+        foreach ([OrderStatus::class, PaymentStatus::class, FulfillmentStatus::class,
+            ShipmentStatus::class, ReturnStatus::class, ProductAvailabilityStatus::class] as $enum) {
+            foreach ($enum::cases() as $from) {
+                if (! $from->isFinal()) {
+                    continue;
+                }
+
+                foreach ($enum::cases() as $to) {
+                    self::assertFalse(
+                        $from->canTransitionTo($to),
+                        sprintf('%s::%s is final but allows -> %s', $enum, $from->name, $to->name),
+                    );
+                }
+            }
+        }
     }
 }
