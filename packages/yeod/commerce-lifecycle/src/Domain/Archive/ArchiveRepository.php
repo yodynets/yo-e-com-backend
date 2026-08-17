@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Domain\Archive;
 
@@ -31,7 +31,8 @@ interface ArchiveRepository
     public function restore(string $type, string $id): void;
 
     /**
-     * Return the deepest snapshot for a record, or null when it is not archived.
+     * Return the latest active snapshot for a record, or null when it is not
+     * currently archived.
      *
      * @return array<string, mixed>|null
      */

@@ -36,13 +36,17 @@ return new class extends Migration
             $table->id();
             $table->string('archivable_type')->index();
             $table->string('archivable_id')->index();
+            $table->unsignedInteger('snapshot_version')->default(1);
             $table->string('reason')->nullable();
             $table->string('archived_by')->nullable();
             $table->string('storage_location')->nullable();
             $table->json('snapshot');
             $table->timestamp('archived_at');
             $table->timestamp('restored_at')->nullable();
-            $table->unique(['archivable_type', 'archivable_id']);
+            // Append-only history: each archive() call creates a new versioned row
+            // rather than overwriting the previous snapshot.
+            $table->index(['archivable_type', 'archivable_id', 'archived_at']);
+            $table->unique(['archivable_type', 'archivable_id', 'snapshot_version']);
         });
     }
 

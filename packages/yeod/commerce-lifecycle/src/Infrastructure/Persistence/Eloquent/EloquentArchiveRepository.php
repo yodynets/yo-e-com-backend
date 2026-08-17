@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Infrastructure\Persistence\Eloquent;
 
@@ -9,14 +9,11 @@ use Yeod\CommerceLifecycle\Domain\Archive\ArchiveRepository;
 
 /**
  * Eloquent adapter for deep archive snapshots.
- *
- * Security: All database parameters are bound using Eloquent's parameter binding.
- * No string interpolation is used in queries.
  */
 final class EloquentArchiveRepository implements ArchiveRepository
 {
     /**
-     * Persist or replace a deep snapshot without deleting the source record.
+     * Append a new versioned deep snapshot without deleting the source record.
      */
     public function archive(
         string $type,
@@ -26,17 +23,25 @@ final class EloquentArchiveRepository implements ArchiveRepository
         ?string $archivedBy = null,
         ?string $storageLocation = null
     ): void {
-        ArchiveRecordModel::query()->updateOrCreate(
-            ['archivable_type' => $type, 'archivable_id' => $id],
-            [
-                'reason'           => $reason,
-                'archived_by'      => $archivedBy,
-                'storage_location' => $storageLocation,
-                'snapshot'         => $snapshot,
-                'archived_at'      => Carbon::now(),
-                'restored_at'      => null,
-            ],
-        );
+        ArchiveRecordModel::query()->create([
+            'archivable_type' => $type,
+            'archivable_id' => $id,
+            'snapshot_version' => $this->nextVersion($type, $id),
+            'reason' => $reason,
+            'archived_by' => $archivedBy,
+            'storage_location' => $storageLocation,
+            'snapshot' => $snapshot,
+            'archived_at' => Carbon::now(),
+            'restored_at' => null,
+        ]);
+    }
+
+    private function nextVersion(string $type, string $id): int
+    {
+        return (int) ArchiveRecordModel::query()
+            ->where('archivable_type', $type)
+            ->where('archivable_id', $id)
+            ->max('snapshot_version') + 1;
     }
 
     /**
@@ -44,10 +49,19 @@ final class EloquentArchiveRepository implements ArchiveRepository
      */
     public function restore(string $type, string $id): void
     {
-        // All user inputs ($type, $id) are bound as parameters, not concatenated
+        $latestVersion = ArchiveRecordModel::query()
+            ->where('archivable_type', $type)
+            ->where('archivable_id', $id)
+            ->max('snapshot_version');
+
+        if ($latestVersion === null) {
+            return;
+        }
+
         ArchiveRecordModel::query()
-            ->where('archivable_type', '=', $type)  // Explicit operator for clarity
-            ->where('archivable_id', '=', $id)       // Explicit operator for clarity
+            ->where('archivable_type', $type)
+            ->where('archivable_id', $id)
+            ->where('snapshot_version', $latestVersion)
             ->update(['restored_at' => Carbon::now()]);
     }
 
@@ -59,6 +73,8 @@ final class EloquentArchiveRepository implements ArchiveRepository
         return ArchiveRecordModel::query()
             ->where('archivable_type', $type)
             ->where('archivable_id', $id)
+            ->whereNull('restored_at')
+            ->orderByDesc('snapshot_version')
             ->value('snapshot');
     }
 
