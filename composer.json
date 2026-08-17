@@ -23,14 +23,14 @@
     "lara-zeus/spatie-translatable": "^2.0",
     "laravel/framework": "^13.17",
     "laravel/tinker": "^3.0",
-    "yeod/commerce-lifecycle": "*"
+    "yeod/commerce-lifecycle": "dev-main"
   },
   "require-dev": {
     "ext-pdo_sqlite": "*",
     "barryvdh/laravel-ide-helper": "^3.7",
     "fakerphp/faker": "^1.23",
     "fruitcake/laravel-debugbar": "^4.4",
-    "larastan/larastan": "3.10",
+    "larastan/larastan": "^3.10",
     "laravel/boost": "^2.5",
     "laravel/pail": "^1.2.5",
     "laravel/pao": "^1.0.6",

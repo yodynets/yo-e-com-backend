@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "81199fda79edf8d346296d535af3cca8",
+    "content-hash": "63c1d180e28a9ad423be8c0bbcb8916c",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -8275,11 +8275,11 @@
         },
         {
             "name": "yeod/commerce-lifecycle",
-            "version": "0.0.0",
+            "version": "dev-main",
             "dist": {
                 "type": "path",
                 "url": "packages/yeod/commerce-lifecycle",
-                "reference": "2ace92e48017b4daf9192949d1822aa0cc96dda4"
+                "reference": "efce0024131515acc7d5bb9e310c26b625011311"
             },
             "require": {
                 "illuminate/contracts": "^12.0|^13.0",
@@ -8289,9 +8289,9 @@
             },
             "require-dev": {
                 "ext-pdo_sqlite": "*",
-                "larastan/larastan": "^3.0",
-                "orchestra/testbench": "^11.0",
-                "phpunit/phpunit": "^12.0"
+                "orchestra/testbench": "^10.0|^11.0",
+                "phparkitect/phparkitect": "^1.3",
+                "phpstan/phpstan-strict-rules": "^2.0"
             },
             "type": "library",
             "extra": {
@@ -8315,6 +8315,15 @@
                 "analyse": [
                     "phpstan analyse --memory-limit=512M"
                 ],
+                "arch": [
+                    "phparkitect check"
+                ],
+                "format": [
+                    "pint"
+                ],
+                "format:check": [
+                    "pint --test"
+                ],
                 "test": [
                     "phpunit --configuration phpunit.xml.dist"
                 ]
@@ -8322,7 +8331,26 @@
             "license": [
                 "MIT"
             ],
-            "description": "DDD/Onion domain module for order, payment, fulfillment, shipment, returns, catalog availability and archival lifecycles.",
+            "authors": [
+                {
+                    "name": "Yevhen Odynets"
+                }
+            ],
+            "description": "Status transition graphs for commerce lifecycles plus a guarded Fulfillment aggregate and deep-archive mechanism for Laravel.",
+            "keywords": [
+                "archive",
+                "ddd",
+                "domain",
+                "fulfillment",
+                "laravel",
+                "lifecycle",
+                "onion-architecture",
+                "status-machine"
+            ],
+            "support": {
+                "issues": "https://github.com/yeod/commerce-lifecycle/issues",
+                "source": "https://github.com/yeod/commerce-lifecycle"
+            },
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -9252,16 +9280,16 @@
         },
         {
             "name": "laravel/mcp",
-            "version": "v0.9.3",
+            "version": "v0.9.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/mcp.git",
-                "reference": "534b29f18418673033ec918c5a840b6ce9c08327"
+                "reference": "7ca5b923630118696602d14348cd0466a5e853ec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/mcp/zipball/534b29f18418673033ec918c5a840b6ce9c08327",
-                "reference": "534b29f18418673033ec918c5a840b6ce9c08327",
+                "url": "https://api.github.com/repos/laravel/mcp/zipball/7ca5b923630118696602d14348cd0466a5e853ec",
+                "reference": "7ca5b923630118696602d14348cd0466a5e853ec",
                 "shasum": ""
             },
             "require": {
@@ -9322,7 +9350,7 @@
                 "issues": "https://github.com/laravel/mcp/issues",
                 "source": "https://github.com/laravel/mcp"
             },
-            "time": "2026-08-10T18:01:31+00:00"
+            "time": "2026-08-13T15:01:07+00:00"
         },
         {
             "name": "laravel/pail",
@@ -11734,7 +11762,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "yeod/commerce-lifecycle": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

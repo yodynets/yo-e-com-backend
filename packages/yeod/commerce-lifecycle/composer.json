@@ -30,12 +30,14 @@
   },
   "require-dev": {
     "ext-pdo_sqlite": "*",
-    "laravel/pint": "^1.0",
-    "larastan/larastan": "^3.0",
     "orchestra/testbench": "^10.0|^11.0",
     "phparkitect/phparkitect": "^1.3",
-    "phpstan/phpstan-strict-rules": "^2.0",
-    "phpunit/phpunit": "^12.0"
+    "phpstan/phpstan-strict-rules": "^2.0"
+  },
+  "suggest": {
+    "larastan/larastan": "Adds Laravel-aware static analysis based on PHPStan.",
+    "laravel/pint": "Provides opinionated PHP code style fixing.",
+    "phpunit/phpunit": "Provides unit and feature testing capabilities."
   },
   "autoload": {
     "psr-4": {
@@ -67,6 +69,6 @@
       "phpstan/extension-installer": true
     }
   },
-  "minimum-stability": "stable",
+  "minimum-stability": "dev",
   "prefer-stable": true
 }
