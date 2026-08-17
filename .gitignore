@@ -21,7 +21,6 @@
 /storage/*.key
 /storage/pail
 /vendor
-/composer.lock
 /composer.phar
 
 _ide_helper.php
@@ -34,3 +33,5 @@ Thumbs.db
 storage/debugbar
 *.cache
 /packages/yeod/commerce-lifecycle/vendor/
+/packages/yeod/AUDIT.md
+/packages/yeod/commerce-lifecycle/FIX_VERIFICATION.md
