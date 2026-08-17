@@ -12,8 +12,11 @@
   },
   "require-dev": {
     "ext-pdo_sqlite": "*",
+    "laravel/pint": "^1.0",
     "larastan/larastan": "^3.0",
     "orchestra/testbench": "^11.0",
+    "phparkitect/phparkitect": "^1.3",
+    "phpstan/phpstan-strict-rules": "^2.0",
     "phpunit/phpunit": "^12.0"
   },
   "autoload": {
@@ -35,6 +38,9 @@
   },
   "scripts": {
     "analyse": "phpstan analyse --memory-limit=512M",
+    "arch": "phparkitect check",
+    "format": "pint",
+    "format:check": "pint --test",
     "test": "phpunit --configuration phpunit.xml.dist"
   },
   "minimum-stability": "stable",

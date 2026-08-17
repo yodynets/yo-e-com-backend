@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Domain\ReturnFlow;
 
@@ -8,24 +8,19 @@ use Yeod\CommerceLifecycle\Domain\Shared\TransitionableStatus;
 
 enum ReturnStatus: string implements TransitionableStatus
 {
-    case Requested         = 'requested';
-    case Approved          = 'approved';
-    case Rejected          = 'rejected';
-    case LabelIssued       = 'label_issued';
-    case InTransit         = 'in_transit';
-    case Received          = 'received';
-    case Inspecting        = 'inspecting';
-    case Accepted          = 'accepted';
+    case Requested = 'requested';
+    case Approved = 'approved';
+    case Rejected = 'rejected';
+    case LabelIssued = 'label_issued';
+    case InTransit = 'in_transit';
+    case Received = 'received';
+    case Inspecting = 'inspecting';
+    case Accepted = 'accepted';
     case PartiallyAccepted = 'partially_accepted';
-    case Refunded          = 'refunded';
-    case Replaced          = 'replaced';
-    case Closed            = 'closed';
+    case Refunded = 'refunded';
+    case Replaced = 'replaced';
+    case Closed = 'closed';
 
-    /**
-     * @param  ReturnStatus  $target
-     *
-     * @return bool
-     */
     public function canTransitionTo(self $target): bool
     {
         return match ($this) {

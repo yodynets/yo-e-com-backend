@@ -9,15 +9,13 @@ use Yeod\CommerceLifecycle\Exceptions\InvalidArgumentException;
 /**
  * A quantity-bearing line inside a fulfillment aggregate.
  */
-final class FulfillmentLine
+final readonly class FulfillmentLine
 {
-    private int $fulfilledQuantity = 0;
-
     public function __construct(
         private readonly string $id,
         private readonly string $sku,
         private readonly int $orderedQuantity,
-        int $fulfilledQuantity = 0,
+        private readonly int $fulfilledQuantity = 0,
     ) {
         if ($id === '' || $sku === '') {
             throw new InvalidArgumentException('A fulfillment line id and SKU are required.');
@@ -25,7 +23,6 @@ final class FulfillmentLine
         if ($orderedQuantity < 1 || $fulfilledQuantity < 0 || $fulfilledQuantity > $orderedQuantity) {
             throw new InvalidArgumentException('Fulfillment quantities are invalid.');
         }
-        $this->fulfilledQuantity = $fulfilledQuantity;
     }
 
     /** Return the unique line identifier. */

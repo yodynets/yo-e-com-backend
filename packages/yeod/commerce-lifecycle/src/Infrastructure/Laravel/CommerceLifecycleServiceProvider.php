@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Infrastructure\Laravel;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use Yeod\CommerceLifecycle\Application\Archive\ArchiveService;
@@ -29,10 +30,13 @@ final class CommerceLifecycleServiceProvider extends ServiceProvider
         $this->app->bind(ArchiveRepository::class, EloquentArchiveRepository::class);
         $this->app->bind(DomainEventDispatcher::class, LaravelDomainEventDispatcher::class);
 
-        $this->app->singleton(Authorizer::class, static function ($app): Authorizer {
-            $concrete = $app['config']->get('commerce-lifecycle.authorizer', DenyAllAuthorizer::class);
+        $this->app->singleton(Authorizer::class, static function (Application $app): Authorizer {
+            $concrete = $app->make('config')->string(
+                'commerce-lifecycle.authorizer',
+                DenyAllAuthorizer::class,
+            );
 
-            if (! is_string($concrete) || ! is_a($concrete, Authorizer::class, true)) {
+            if (! is_a($concrete, Authorizer::class, true)) {
                 throw new InvalidArgumentException(sprintf(
                     'commerce-lifecycle.authorizer must be a class-string implementing %s, got %s.',
                     Authorizer::class,
@@ -40,14 +44,17 @@ final class CommerceLifecycleServiceProvider extends ServiceProvider
                 ));
             }
 
-            return $app->make($concrete);
+            /** @var Authorizer $authorizer */
+            $authorizer = $app->make($concrete);
+
+            return $authorizer;
         });
 
-        $this->app->bind(ArchiveService::class, static function ($app): ArchiveService {
+        $this->app->bind(ArchiveService::class, static function (Application $app): ArchiveService {
             return new ArchiveService(
                 $app->make(ArchiveRepository::class),
-                (int) $app['config']->get('commerce-lifecycle.max_snapshot_size', 512),
-                (int) $app['config']->get('commerce-lifecycle.max_reason_length', 1000),
+                $app->make('config')->integer('commerce-lifecycle.max_snapshot_size', 512),
+                $app->make('config')->integer('commerce-lifecycle.max_reason_length', 1000),
                 $app->make(Authorizer::class),
             );
         });
@@ -59,8 +66,9 @@ final class CommerceLifecycleServiceProvider extends ServiceProvider
             __DIR__.'/../../../config/commerce-lifecycle.php' => config_path('commerce-lifecycle.php'),
         ], 'commerce-lifecycle-config');
 
-        $this->publishes([
-            __DIR__.'/../../../database/migrations' => database_path('migrations'),
-        ], 'commerce-lifecycle-migrations');
+        $this->publishesMigrations(
+            [__DIR__.'/../../../database/migrations'],
+            ['commerce-lifecycle-migrations'],
+        );
     }
 }

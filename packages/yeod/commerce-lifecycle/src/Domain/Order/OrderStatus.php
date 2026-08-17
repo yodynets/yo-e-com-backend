@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Domain\Order;
 
@@ -8,21 +8,16 @@ use Yeod\CommerceLifecycle\Domain\Shared\TransitionableStatus;
 
 enum OrderStatus: string implements TransitionableStatus
 {
-    case Pending             = 'pending';
-    case AwaitingPayment     = 'awaiting_payment';
-    case PaymentFailed       = 'payment_failed';
+    case Pending = 'pending';
+    case AwaitingPayment = 'awaiting_payment';
+    case PaymentFailed = 'payment_failed';
     case AwaitingFulfillment = 'awaiting_fulfillment';
-    case AwaitingPickup      = 'awaiting_pickup';
-    case Shipped             = 'shipped';
-    case Completed           = 'completed';
-    case Cancelled           = 'cancelled';
-    case Refunded            = 'refunded';
+    case AwaitingPickup = 'awaiting_pickup';
+    case Shipped = 'shipped';
+    case Completed = 'completed';
+    case Cancelled = 'cancelled';
+    case Refunded = 'refunded';
 
-    /**
-     * @param  OrderStatus  $target
-     *
-     * @return bool
-     */
     public function canTransitionTo(self $target): bool
     {
         return match ($this) {

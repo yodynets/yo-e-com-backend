@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Domain\Fulfillment;
 
@@ -8,18 +8,13 @@ use Yeod\CommerceLifecycle\Domain\Shared\TransitionableStatus;
 
 enum FulfillmentStatus: string implements TransitionableStatus
 {
-    case Scheduled          = 'scheduled';
-    case Unfulfilled        = 'unfulfilled';
+    case Scheduled = 'scheduled';
+    case Unfulfilled = 'unfulfilled';
     case PartiallyFulfilled = 'partially_fulfilled';
-    case Fulfilled          = 'fulfilled';
-    case OnHold             = 'on_hold';
-    case Cancelled          = 'cancelled';
+    case Fulfilled = 'fulfilled';
+    case OnHold = 'on_hold';
+    case Cancelled = 'cancelled';
 
-    /**
-     * @param  FulfillmentStatus  $target
-     *
-     * @return bool
-     */
     public function canTransitionTo(self $target): bool
     {
         return match ($this) {

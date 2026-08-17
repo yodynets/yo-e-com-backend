@@ -218,6 +218,7 @@ final class EloquentFulfillmentRepositoryTest extends TestCase
             return $capsule->getDatabaseManager()->connection()->getSchemaBuilder();
         });
 
+        /** @var object{up(): void} $migration */
         $migration =
             require __DIR__.'/../../database/migrations/2026_01_01_000000_create_commerce_lifecycle_tables.php';
         $migration->up();

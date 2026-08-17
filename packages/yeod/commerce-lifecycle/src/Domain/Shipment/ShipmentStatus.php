@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Domain\Shipment;
 
@@ -8,20 +8,15 @@ use Yeod\CommerceLifecycle\Domain\Shared\TransitionableStatus;
 
 enum ShipmentStatus: string implements TransitionableStatus
 {
-    case LabelCreated     = 'label_created';
-    case AwaitingPickup   = 'awaiting_pickup';
-    case InTransit        = 'in_transit';
-    case OutForDelivery   = 'out_for_delivery';
-    case Delivered        = 'delivered';
-    case DeliveryFailed   = 'delivery_failed';
+    case LabelCreated = 'label_created';
+    case AwaitingPickup = 'awaiting_pickup';
+    case InTransit = 'in_transit';
+    case OutForDelivery = 'out_for_delivery';
+    case Delivered = 'delivered';
+    case DeliveryFailed = 'delivery_failed';
     case ReturnedToSender = 'returned_to_sender';
-    case Cancelled        = 'cancelled';
+    case Cancelled = 'cancelled';
 
-    /**
-     * @param  ShipmentStatus  $target
-     *
-     * @return bool
-     */
     public function canTransitionTo(self $target): bool
     {
         return match ($this) {

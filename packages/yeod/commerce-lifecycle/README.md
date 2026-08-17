@@ -41,6 +41,8 @@ php artisan migrate
 - [Architecture notes](docs/architecture.md) — layering and design decisions.
 - [Positioning](docs/positioning.md) — why it is a separate package and how it
   binds to a shop (or grows into a merchant domain).
+- [Standards](docs/standards.md) — adopted coding standards and how each is
+  enforced (Pint, PHPStan/Larastan, PHPArkitect).
 
 ## Example
 
@@ -140,11 +142,15 @@ The package includes explicit transition graphs for `OrderStatus`, `PaymentStatu
 ## Quality gates
 
 ```bash
-composer test
-composer analyse
+composer test            # PHPUnit
+composer analyse         # PHPStan level max + Larastan + strict-rules (+ baseline)
+composer arch            # PHPArkitect Onion / DDD layer rules
+composer format          # Pint (fix); use format:check for a dry run
 ```
 
-PHP 8.3+ and Laravel 13 are supported. The core domain has no dependency on controllers, requests, facades, or Eloquent.
+PHP 8.3+ and Laravel 13 are supported. The core domain has no dependency on
+controllers, requests, facades, or Eloquent. See [docs/standards.md](docs/standards.md)
+for the full list of adopted standards and how each is enforced.
 
 ### Running tests inside the host application (current setup)
 

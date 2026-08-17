@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Domain\Payment;
 
@@ -8,19 +8,14 @@ use Yeod\CommerceLifecycle\Domain\Shared\TransitionableStatus;
 
 enum PaymentStatus: string implements TransitionableStatus
 {
-    case Pending           = 'pending';
-    case Authorized        = 'authorized';
-    case Captured          = 'captured';
-    case Failed            = 'failed';
+    case Pending = 'pending';
+    case Authorized = 'authorized';
+    case Captured = 'captured';
+    case Failed = 'failed';
     case PartiallyRefunded = 'partially_refunded';
-    case Refunded          = 'refunded';
-    case Voided            = 'voided';
+    case Refunded = 'refunded';
+    case Voided = 'voided';
 
-    /**
-     * @param  PaymentStatus  $target
-     *
-     * @return bool
-     */
     public function canTransitionTo(self $target): bool
     {
         return match ($this) {

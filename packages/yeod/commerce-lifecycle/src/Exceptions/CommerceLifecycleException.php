@@ -10,6 +10,4 @@ namespace Yeod\CommerceLifecycle\Exceptions;
  * Consuming applications may catch this single type to handle all package-level
  * business exceptions uniformly.
  */
-abstract class CommerceLifecycleException extends \Exception
-{
-}
+abstract class CommerceLifecycleException extends \Exception {}

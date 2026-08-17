@@ -1,12 +1,12 @@
 <?php
 
 /**
- * @package fila
  * @author  Yevhen Odynets
+ *
  * @since   2026-08-16
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Yeod\CommerceLifecycle\Infrastructure\Events;
 
