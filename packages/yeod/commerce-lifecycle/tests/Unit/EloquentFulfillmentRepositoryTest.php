@@ -1,11 +1,14 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
+
+namespace Yeod\CommerceLifecycle\Tests\Unit;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Support\Facades\Facade;
 use PHPUnit\Framework\TestCase;
+use Throwable;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\Fulfillment;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentLine;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentStatus;
@@ -82,12 +85,14 @@ final class EloquentFulfillmentRepositoryTest extends TestCase
         $this->repository()->save($fulfillment);
 
         $loaded = $this->repository()->find('ful-1');
+        self::assertNotNull($loaded);
         self::assertSame(1, $loaded->version());
 
         $loaded->changeStatus(FulfillmentStatus::Unfulfilled);
         $this->repository()->save($loaded);
 
         $reloaded = $this->repository()->find('ful-1');
+        self::assertNotNull($reloaded);
         self::assertSame(2, $reloaded->version());
         self::assertSame(FulfillmentStatus::Unfulfilled, $reloaded->status());
     }
@@ -103,6 +108,8 @@ final class EloquentFulfillmentRepositoryTest extends TestCase
 
         $first = $this->repository()->find('ful-1');
         $second = $this->repository()->find('ful-1');
+        self::assertNotNull($first);
+        self::assertNotNull($second);
 
         $first->changeStatus(FulfillmentStatus::Unfulfilled);
         $this->repository()->save($first);
@@ -113,13 +120,75 @@ final class EloquentFulfillmentRepositoryTest extends TestCase
         $this->repository()->save($second);
     }
 
+    /**
+     * @throws Throwable
+     */
+    public function test_same_line_ids_across_aggregates_is_allowed(): void
+    {
+        $first = Fulfillment::create('ful-1', 'ord-1', [
+            new FulfillmentLine('line-1', 'sku-1', 3),
+            new FulfillmentLine('line-2', 'sku-2', 2),
+        ]);
+        $this->repository()->save($first);
+
+        $second = Fulfillment::create('ful-2', 'ord-2', [
+            new FulfillmentLine('line-1', 'sku-3', 1),
+            new FulfillmentLine('line-2', 'sku-4', 4),
+        ]);
+        $this->repository()->save($second);
+
+        $firstLoaded = $this->repository()->find('ful-1');
+        $secondLoaded = $this->repository()->find('ful-2');
+        self::assertNotNull($firstLoaded);
+        self::assertNotNull($secondLoaded);
+        self::assertCount(2, $firstLoaded->lines());
+        self::assertCount(2, $secondLoaded->lines());
+        self::assertSame('sku-1', $firstLoaded->lines()[0]->sku());
+        self::assertSame('sku-3', $secondLoaded->lines()[0]->sku());
+    }
+
+    /**
+     * A failed write must not advance the aggregate's in-memory version, so the
+     * aggregate stays coherent with the persisted row (no bogus StaleAggregate
+     * on the caller's next save).
+     *
+     * @throws Throwable
+     * @throws InvalidTransitionException
+     */
+    public function test_failed_save_does_not_desynchronize_in_memory_version(): void
+    {
+        $fulfillment = $this->fulfillment();
+        $this->repository()->save($fulfillment);
+
+        $first = $this->repository()->find('ful-1');
+        $second = $this->repository()->find('ful-1');
+        self::assertNotNull($first);
+        self::assertNotNull($second);
+
+        $first->changeStatus(FulfillmentStatus::Unfulfilled);
+        $this->repository()->save($first);
+
+        // second is now stale (still loaded at the pre-update version).
+        $versionBefore = $second->version();
+
+        try {
+            $second->changeStatus(FulfillmentStatus::OnHold);
+            $this->repository()->save($second);
+            self::fail('Expected StaleAggregateException was not thrown.');
+        } catch (StaleAggregateException) {
+            // expected
+        }
+
+        self::assertSame($versionBefore, $second->version(), 'A failed save must not bump the in-memory version.');
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
 
         if (self::$repository === null) {
             self::bootDatabase();
-            self::$repository = new EloquentFulfillmentRepository();
+            self::$repository = new EloquentFulfillmentRepository;
         }
 
         FulfillmentLineModel::query()->delete();
@@ -128,11 +197,11 @@ final class EloquentFulfillmentRepositoryTest extends TestCase
 
     private static function bootDatabase(): void
     {
-        $capsule = new Capsule();
+        $capsule = new Capsule;
         $capsule->addConnection([
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
-            'prefix'   => '',
+            'prefix' => '',
         ]);
         $capsule->setAsGlobal();
         $capsule->bootEloquent();
@@ -150,7 +219,7 @@ final class EloquentFulfillmentRepositoryTest extends TestCase
         });
 
         $migration =
-            require __DIR__ . '/../../database/migrations/2026_01_01_000000_create_commerce_lifecycle_tables.php';
+            require __DIR__.'/../../database/migrations/2026_01_01_000000_create_commerce_lifecycle_tables.php';
         $migration->up();
     }
 }

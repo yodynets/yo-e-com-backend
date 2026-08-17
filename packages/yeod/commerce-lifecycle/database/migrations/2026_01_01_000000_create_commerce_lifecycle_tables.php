@@ -1,12 +1,13 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('commerce_fulfillments', static function (Blueprint $table): void {
@@ -19,11 +20,15 @@ return new class extends Migration {
         });
 
         Schema::create('commerce_fulfillment_lines', static function (Blueprint $table): void {
-            $table->string('id')->primary();
-            $table->string('fulfillment_id')->index();
+            $table->string('id');
+            $table->string('fulfillment_id');
             $table->string('sku')->index();
             $table->unsignedInteger('ordered_quantity');
             $table->unsignedInteger('fulfilled_quantity')->default(0);
+
+            // Line ids are unique only within an aggregate (see Fulfillment domain
+            // constructor), so the primary key must be composite.
+            $table->primary(['fulfillment_id', 'id']);
             $table->foreign('fulfillment_id')->references('id')->on('commerce_fulfillments')->cascadeOnDelete();
         });
 
