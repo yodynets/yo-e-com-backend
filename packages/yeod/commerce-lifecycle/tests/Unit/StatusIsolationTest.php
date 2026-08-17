@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-use PHPUnit\Framework\Attributes\DataProvider;
+namespace Yeod\CommerceLifecycle\Tests\Unit;
+
 use PHPUnit\Framework\TestCase;
 use Yeod\CommerceLifecycle\Domain\Catalog\ProductAvailabilityStatus;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\Fulfillment;
@@ -28,36 +29,66 @@ final class StatusIsolationTest extends TestCase
     /**
      * Each status axis must reject a foreign-status argument with a TypeError.
      * This proves the enums are isolated at the language level, not by convention.
-     *
-     * @return iterable<string, array{callable(): void}>
      */
-    public static function foreignContextProbeProvider(): iterable
+    public function test_fulfillment_status_rejects_payment_status(): void
     {
-        yield 'fulfillment vs payment' => [
-            static fn (): mixed => FulfillmentStatus::Unfulfilled->canTransitionTo(PaymentStatus::Captured),
-        ];
-        yield 'order vs shipment' => [
-            static fn (): mixed => OrderStatus::AwaitingPayment->canTransitionTo(ShipmentStatus::Delivered),
-        ];
-        yield 'payment vs return' => [
-            static fn (): mixed => PaymentStatus::Captured->canTransitionTo(ReturnStatus::Refunded),
-        ];
-        yield 'shipment vs catalog' => [
-            static fn (): mixed => ShipmentStatus::InTransit->canTransitionTo(ProductAvailabilityStatus::Available),
-        ];
-        yield 'return vs order' => [
-            static fn (): mixed => ReturnStatus::Inspecting->canTransitionTo(OrderStatus::Completed),
-        ];
-        yield 'catalog vs fulfillment' => [
-            static fn (): mixed => ProductAvailabilityStatus::Available->canTransitionTo(FulfillmentStatus::Fulfilled),
-        ];
+        $this->expectForeignTypeError(
+            static fn (mixed $target): bool => FulfillmentStatus::Unfulfilled->canTransitionTo($target),
+            PaymentStatus::Captured,
+        );
     }
 
-    #[DataProvider('foreignContextProbeProvider')]
-    public function test_foreign_status_enum_is_a_type_error(callable $probe): void
+    public function test_order_status_rejects_shipment_status(): void
+    {
+        $this->expectForeignTypeError(
+            static fn (mixed $target): bool => OrderStatus::AwaitingPayment->canTransitionTo($target),
+            ShipmentStatus::Delivered,
+        );
+    }
+
+    public function test_payment_status_rejects_return_status(): void
+    {
+        $this->expectForeignTypeError(
+            static fn (mixed $target): bool => PaymentStatus::Captured->canTransitionTo($target),
+            ReturnStatus::Refunded,
+        );
+    }
+
+    public function test_shipment_status_rejects_catalog_status(): void
+    {
+        $this->expectForeignTypeError(
+            static fn (mixed $target): bool => ShipmentStatus::InTransit->canTransitionTo($target),
+            ProductAvailabilityStatus::Available,
+        );
+    }
+
+    public function test_return_status_rejects_order_status(): void
+    {
+        $this->expectForeignTypeError(
+            static fn (mixed $target): bool => ReturnStatus::Inspecting->canTransitionTo($target),
+            OrderStatus::Completed,
+        );
+    }
+
+    public function test_catalog_status_rejects_fulfillment_status(): void
+    {
+        $this->expectForeignTypeError(
+            static fn (mixed $target): bool => ProductAvailabilityStatus::Available->canTransitionTo($target),
+            FulfillmentStatus::Fulfilled,
+        );
+    }
+
+    /**
+     * Assert that passing a foreign status enum into a typed transition raises a
+     * TypeError at runtime (the isolation guarantee), routed through a `mixed`
+     * parameter so the intentional mismatch is not flagged as a static error.
+     *
+     * @param  callable(mixed): bool  $probe
+     */
+    private function expectForeignTypeError(callable $probe, mixed $target): void
     {
         $this->expectException(\TypeError::class);
-        $probe();
+        $probe($target);
     }
 
     public function test_forbidden_transition_throws_package_domain_exception(): void

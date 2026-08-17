@@ -1,12 +1,14 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
+
+namespace Yeod\CommerceLifecycle\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Yeod\CommerceLifecycle\Exceptions\InvalidTransitionException;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\Fulfillment;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentLine;
 use Yeod\CommerceLifecycle\Domain\Fulfillment\FulfillmentStatus;
+use Yeod\CommerceLifecycle\Exceptions\InvalidTransitionException;
 
 final class FulfillmentTest extends TestCase
 {

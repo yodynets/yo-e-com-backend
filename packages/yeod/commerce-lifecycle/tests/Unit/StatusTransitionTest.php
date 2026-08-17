@@ -1,6 +1,8 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
+
+namespace Yeod\CommerceLifecycle\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Yeod\CommerceLifecycle\Domain\Catalog\ProductAvailabilityStatus;
