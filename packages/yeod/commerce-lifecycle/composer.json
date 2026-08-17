@@ -1,6 +1,6 @@
 {
   "name": "yeod/commerce-lifecycle",
-  "description": "DDD/Onion domain module for order, payment, fulfillment, shipment, returns, catalog availability and archival lifecycles.",
+  "description": "Status transition graphs for commerce lifecycles plus a guarded Fulfillment aggregate and deep-archive mechanism for Laravel.",
   "type": "library",
   "keywords": [
     "laravel",
