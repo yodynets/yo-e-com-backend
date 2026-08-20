@@ -1,0 +1,108 @@
+# Deptrac enforces the Onion layering. Second pass (module boundaries) lives in
+# deptrac.modules.yaml. Run: vendor/bin/deptrac analyse --config-file=deptrac.yaml
+parameters:
+  paths:
+    - ./src
+  exclude_files:
+    - '#.*Test\.php$#'
+  cache_file: .deptrac.cache
+
+  layers:
+    # ---------------------------------------------------------------- Onion layers
+    - name: Domain
+      collectors:
+        - type: directory
+          value: src/.*/Domain/.*
+
+    - name: Application
+      collectors:
+        - type: directory
+          value: src/.*/Application/.*
+
+    # Infrastructure without the Eloquent models, which get their own layer so that
+    # Filament resources may reference them (see the Presentation ruleset below).
+    - name: Infrastructure
+      collectors:
+        - type: bool
+          must:
+            - type: directory
+              value: src/.*/Infrastructure/.*
+          must_not:
+            - type: directory
+              value: src/Modules/.*/Infrastructure/Persistence/Eloquent/Models/.*
+
+    - name: EloquentModel
+      collectors:
+        - type: directory
+          value: src/Modules/.*/Infrastructure/Persistence/Eloquent/Models/.*
+
+    - name: Presentation
+      collectors:
+        - type: directory
+          value: src/.*/Presentation/.*
+
+    - name: Contracts
+      collectors:
+        - type: directory
+          value: src/Modules/.*/Contracts/.*
+
+    - name: ServiceProvider
+      collectors:
+        - type: className
+          value: '.*ServiceProvider$'
+
+    # ------------------------------------------------------------------ Third party
+    - name: Laravel
+      collectors:
+        - type: className
+          value: '^(Illuminate|Laravel|Symfony)\\.*'
+
+    - name: Filament
+      collectors:
+        - type: className
+          value: '^Filament\\.*'
+
+  ruleset:
+    # The heart of the Onion: the Domain depends on nothing but itself.
+    Domain: ~
+
+    # Application orchestrates the Domain and talks to other modules via Contracts.
+    Application:
+      - Domain
+      - Contracts
+
+    # Infrastructure implements the ports declared by Domain and Application.
+    Infrastructure:
+      - Domain
+      - Application
+      - Contracts
+      - EloquentModel
+      - Laravel
+
+    # Persistence models are dumb rows: framework only, no domain knowledge.
+    EloquentModel:
+      - Laravel
+
+    # Presentation may only call use cases. Referencing an Eloquent model is allowed
+    # for one reason only: Filament resources need a query builder. Writes still go
+    # through commands.
+    Presentation:
+      - Application
+      - Contracts
+      - EloquentModel
+      - Laravel
+      - Filament
+
+    # A module's public API must stay dependency free.
+    Contracts: ~
+
+    # Service providers are the single wiring point allowed to see every layer.
+    ServiceProvider:
+      - Domain
+      - Application
+      - Infrastructure
+      - EloquentModel
+      - Presentation
+      - Contracts
+      - Laravel
+      - Filament

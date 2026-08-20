@@ -1,0 +1,52 @@
+{
+  "preset": "psr12",
+  "rules": {
+    "Pint/laravel_blade": true,
+    "declare_strict_types": true,
+    "strict_comparison": true,
+    "final_class": false,
+    "global_namespace_import": {
+      "import_classes": true,
+      "import_constants": true,
+      "import_functions": true
+    },
+    "ordered_imports": {
+      "imports_order": [
+        "class",
+        "function",
+        "const"
+      ],
+      "sort_algorithm": "alpha"
+    },
+    "no_unused_imports": true,
+    "single_quote": true,
+    "phpdoc_align": {
+      "align": "left"
+    },
+    "phpdoc_order": true,
+    "phpdoc_separation": true,
+    "void_return": true,
+    "trailing_comma_in_multiline": {
+      "elements": [
+        "arrays",
+        "arguments",
+        "parameters"
+      ]
+    }
+  },
+  "exclude": [
+    ".agents",
+    ".ai",
+    ".claude",
+    ".junie",
+    "bootstrap/cache",
+    "docs",
+    "packages",
+    "src",
+    "storage",
+    "vendor"
+  ],
+  "notName": [
+    "*_ide_helper.php"
+  ]
+}

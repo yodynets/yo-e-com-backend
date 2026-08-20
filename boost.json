@@ -6,9 +6,24 @@
         "opencode",
         "zed"
     ],
+    "cloud": false,
     "guidelines": true,
     "packages": [
         "filament/filament",
         "fruitcake/laravel-debugbar"
+    ],
+    "skills": [
+        "infer-conventions",
+        "laravel-best-practices",
+        "tailwindcss-development",
+        "debug-using-debugbar",
+        "eloquent-best-practices",
+        "laravel-database-optimization",
+        "laravel-expert",
+        "laravel-patterns",
+        "laravel-specialist",
+        "livewire-development",
+        "php-pro",
+        "spatie-laravel-php"
     ]
 }

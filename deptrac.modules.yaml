@@ -1,0 +1,56 @@
+# Second Deptrac pass: cross-module boundaries.
+# A module may only reach another module through its Contracts namespace
+# (or through the Shared Kernel). Run it in CI next to deptrac.yaml.
+parameters:
+  paths:
+    - ./src
+  cache_file: .deptrac.modules.cache
+
+  layers:
+    - name: Shared
+      collectors:
+        - type: directory
+          value: src/Shared/.*
+
+    - name: Catalog
+      collectors:
+        - type: directory
+          value: src/Modules/Catalog/.*
+        - type: bool
+          must_not:
+            - type: directory
+              value: src/Modules/Catalog/Contracts/.*
+
+    - name: CatalogContracts
+      collectors:
+        - type: directory
+          value: src/Modules/Catalog/Contracts/.*
+
+    - name: Orders
+      collectors:
+        - type: directory
+          value: src/Modules/Orders/.*
+        - type: bool
+          must_not:
+            - type: directory
+              value: src/Modules/Orders/Contracts/.*
+
+    - name: OrdersContracts
+      collectors:
+        - type: directory
+          value: src/Modules/Orders/Contracts/.*
+
+  ruleset:
+    Shared: ~
+    CatalogContracts:
+      - Shared
+    OrdersContracts:
+      - Shared
+    Catalog:
+      - Shared
+      - CatalogContracts
+      - OrdersContracts
+    Orders:
+      - Shared
+      - OrdersContracts
+      - CatalogContracts

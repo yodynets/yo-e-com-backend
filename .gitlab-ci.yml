@@ -1,0 +1,96 @@
+# GitLab CI: lint -> analyse -> arch -> test
+# The pipeline fails on any style, static analysis, architecture or test violation.
+stages:
+  - build
+  - lint
+  - analyse
+  - arch
+  - test
+
+default:
+  image: php:8.5-cli
+  before_script:
+    - apt-get update -yqq && apt-get install -yqq git unzip libzip-dev libicu-dev libpq-dev
+    - docker-php-ext-install -j"$(nproc)" zip intl pdo_mysql bcmath
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+variables:
+  COMPOSER_ALLOW_SUPERUSER: "1"
+  COMPOSER_CACHE_DIR: "$CI_PROJECT_DIR/.composer-cache"
+  COMPOSER_NO_INTERACTION: "1"
+
+# Composer cache is shared by every stage and keyed by the lock file.
+.composer_cache: &composer_cache
+  cache:
+    key:
+      files:
+        - composer.lock
+    paths:
+      - .composer-cache
+      - vendor
+
+composer:
+  stage: build
+  <<: *composer_cache
+  script:
+    - composer validate --strict
+    - composer install --prefer-dist --no-progress --no-scripts
+  artifacts:
+    paths:
+      - vendor
+      - composer.lock
+    expire_in: 1 day
+
+pint:
+  stage: lint
+  <<: *composer_cache
+  needs: [composer]
+  script:
+    - vendor/bin/pint --test
+
+phpstan:
+  stage: analyse
+  <<: *composer_cache
+  needs: [composer]
+  script:
+    - vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+deptrac:layers:
+  stage: arch
+  <<: *composer_cache
+  needs: [composer]
+  script:
+    - vendor/bin/deptrac analyse --config-file=deptrac.yaml --no-progress --report-uncovered
+
+deptrac:modules:
+  stage: arch
+  <<: *composer_cache
+  needs: [composer]
+  script:
+    - vendor/bin/deptrac analyse --config-file=deptrac.modules.yaml --no-progress
+
+phparkitect:
+  stage: arch
+  <<: *composer_cache
+  needs: [composer]
+  script:
+    - vendor/bin/phparkitect check --config=phparkitect.php
+
+phpunit:unit:
+  stage: test
+  <<: *composer_cache
+  needs: [composer]
+  script:
+    - cp .env.example .env
+    - php artisan key:generate
+    - vendor/bin/phpunit --testsuite=Unit
+
+phpunit:feature:
+  stage: test
+  <<: *composer_cache
+  needs: [composer]
+  script:
+    - apt-get install -yqq libsqlite3-dev && docker-php-ext-install pdo_sqlite
+    - cp .env.example .env
+    - php artisan key:generate
+    - vendor/bin/phpunit --testsuite=Feature

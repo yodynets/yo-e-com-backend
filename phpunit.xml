@@ -2,12 +2,18 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
+         cacheDirectory=".phpunit.cache"
          colors="true"
+         failOnWarning="true"
+         failOnRisky="true"
+         beStrictAboutOutputDuringTests="true"
 >
     <testsuites>
+        <!-- Pure domain tests: no framework, no database, fast. -->
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
+        <!-- Application/Presentation tests: booted framework and in-memory database. -->
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
@@ -19,6 +25,7 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
